@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">ECE484-Project15-client</string>
+    <string name="test_find_printer">Find Printer-Test</string>
+    <string name="test_send_document">Send Document-Test</string>
+    <string name="test_map_layout">Map Layout-Test</string>
+    <string name="title_activity_maps">FindPrinterMap</string>
 </resources>

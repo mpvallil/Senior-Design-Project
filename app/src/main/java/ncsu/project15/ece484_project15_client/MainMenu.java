@@ -14,12 +14,21 @@ public class MainMenu extends AppCompatActivity {
         setContentView(R.layout.activity_main_menu);
 
         Button test_maps_button = findViewById(R.id.test_map_layout_button);
+        Button test_login_button = findViewById(R.id.test_login_button);
 
         test_maps_button.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(MainMenu.this, MapsActivity.class));
+            }
+        });
+
+        test_login_button.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainMenu.this, LoginActivity.class));
             }
         });
     }

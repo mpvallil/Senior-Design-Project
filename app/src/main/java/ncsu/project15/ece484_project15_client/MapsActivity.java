@@ -24,6 +24,9 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -38,11 +41,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     private LocationRequest mLocationRequest;
     Location mLastLocation;
-    Marker mCurrLocationMarker;
+    Circle mCurrentLocationCircle;
     private FusedLocationProviderClient mFusedLocationClient;
-    Location currentLocation;
     LocationCallback mLocationCallback;
-
+    CameraPosition position;
+    boolean followLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,13 +67,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
                 for (Location location : locationResult.getLocations()) {
                     Log.i("MapsActivity", "Location: " + location.getLatitude() + " " + location.getLongitude());
-                    if (mLastLocation == null) {
-                        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 11));
+                    LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+                    if(position != null && followLocation) {
+                        Log.i("MapsActivity", "CameraPosition " + position.target);
+                        mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
                     }
                     mLastLocation = location;
                 }
-
             };
         };
     }
@@ -80,11 +83,38 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(1000); // one second interval
         mLocationRequest.setFastestInterval(1000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+
+        mMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
+            @Override
+            public boolean onMyLocationButtonClick() {
+                followLocation = true;
+                return false;
+            }
+        });
+
+        mMap.setOnCameraIdleListener(new GoogleMap.OnCameraIdleListener() {
+            @Override
+            public void onCameraIdle() {
+                position = mMap.getCameraPosition();
+                if (mLastLocation != null) {
+                    //Draw 20 mile radius circle
+                    CircleOptions circleOptions = new CircleOptions()
+                            .center(position.target)
+                            .radius(500); //20 miles
+                    if (mCurrentLocationCircle != null) {
+                        mCurrentLocationCircle.remove();
+                    }
+                    mCurrentLocationCircle = mMap.addCircle(circleOptions);
+                    followLocation = false;
+                } else {
+                    followLocation = true;
+                }
+            }
+        });
 
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -94,7 +124,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 public void onSuccess(Location location) {
                 // Got last known location. In some rare situations this can be null.
                     if (location != null) {
-                        mMap.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(location.getLatitude(), location.getLongitude())));
+                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 15));
                     }
                 }
             });
@@ -170,5 +200,4 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             // permissions this app might request.
         }
     }
-
 }

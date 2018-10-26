@@ -1,12 +1,17 @@
 <resources>
     <string name="app_name">ECE484-Project15-client</string>
+    // MainMenu strings
     <string name="test_find_printer">Find Printer-Test</string>
     <string name="test_send_document">Send Document-Test</string>
     <string name="test_map_layout">Map Layout-Test</string>
     <string name="test_login">Login Screen-Test</string>
-    <string name="title_activity_maps">Find Printer Map</string>
+    // Activity Name strings
+    <string name="title_activity_maps" />
     <string name="title_activity_login">Log in</string>
-    <!-- Strings related to login -->
+    // MapsActivity strings
+    <string name="title_printer_map_textView">Printer Map</string>
+    <string name="title_filter_button">Filter</string>
+    // Login strings
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Password (optional)</string>
     <string name="action_sign_in">Sign in or register</string>

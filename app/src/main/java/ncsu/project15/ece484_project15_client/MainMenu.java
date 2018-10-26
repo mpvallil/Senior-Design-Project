@@ -15,6 +15,7 @@ public class MainMenu extends AppCompatActivity {
 
         Button test_maps_button = findViewById(R.id.test_map_layout_button);
         Button test_login_button = findViewById(R.id.test_login_button);
+        Button test_send_document_button = findViewById(R.id.test_send_document_button);
 
         test_maps_button.setOnClickListener(new View.OnClickListener() {
 
@@ -29,6 +30,13 @@ public class MainMenu extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(MainMenu.this, LoginActivity.class));
+            }
+        });
+
+        test_send_document_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainMenu.this, DownloadActivity.class));
             }
         });
     }

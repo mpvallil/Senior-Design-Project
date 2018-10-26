@@ -2,7 +2,7 @@ package ncsu.project15.ece484_project15_client;
 
 import android.net.NetworkInfo;
 
-public interface DownloadCallback<T> {
+public interface DownloadCallback<String> {
     interface Progress {
         int ERROR = -1;
         int CONNECT_SUCCESS = 0;
@@ -15,7 +15,7 @@ public interface DownloadCallback<T> {
      * Indicates that the callback handler needs to update its appearance or information based on
      * the result of the task. Expected to be called from the main thread.
      */
-    void updateFromDownload(T result );
+    void updateFromDownload(String result );
 
     /**
      * Get the device's active network status in the form of a NetworkInfo object.

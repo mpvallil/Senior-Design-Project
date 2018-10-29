@@ -5,6 +5,7 @@
     <string name="test_send_document">Send Document-Test</string>
     <string name="test_map_layout">Map Layout-Test</string>
     <string name="test_login">Login Screen-Test</string>
+    <string name="test_MainMenu">Main Menu</string>
     // Activity Name strings
     <string name="title_activity_maps" />
     <string name="title_activity_login">Log in</string>
@@ -23,4 +24,8 @@
     <string name="permission_rationale">"Contacts permissions are needed for providing email
         completions."
     </string>
+    // Strings in filter_menu
+    <string name="select_printer_color">Color:</string>
+    <string name="select_printer_color_bw">Black/White</string>
+    <string name="select_printer_color_color">Color</string>
 </resources>

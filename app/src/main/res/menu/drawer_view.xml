@@ -2,20 +2,13 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_camera"
-            android:icon="@drawable/common_google_signin_btn_text_light_normal"
-            android:title="@string/app_name" />
-        <!-- <item
-             android:id="@+id/nav_gallery"
-             android:icon="@drawable/ic_menu_gallery"
-             android:title="@string/gallery" />
-         <item
-             android:id="@+id/nav_slideshow"
-             android:icon="@drawable/ic_menu_slideshow"
-             android:title="@string/slideshow" />
-         <item
-             android:id="@+id/nav_manage"
-             android:icon="@drawable/ic_menu_manage"
-             android:title="@string/tools" /> -->
+            android:id="@+id/test_MainMenu"
+            android:title="@string/test_MainMenu"/>
+        <item
+            android:id="@+id/test_SendDocument"
+            android:title="@string/test_send_document" />
+        <item
+            android:id="@+id/test_Login"
+            android:title="@string/test_login" />
      </group>
  </menu>

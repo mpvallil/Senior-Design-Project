@@ -1,15 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/color_select"
+        android:title="@string/select_printer_color">
+
+        <menu>
+            <group android:checkableBehavior="all">
+                <item
+                    android:id="@+id/select_printer_color_bw"
+                    android:title="@string/select_printer_color_bw" />
+                <item
+                    android:id="@+id/select_printer_color_color"
+                    android:title="@string/select_printer_color_color" />
+            </group>
+        </menu>
+
+
+    </item>
+
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_camera"
-            android:icon="@drawable/common_google_signin_btn_text_light_normal"
             android:title="@string/app_name" />
+        <item
+             android:id="@+id/nav_color_select"
+             android:title="@string/select_printer_color" />
         <!-- <item
-             android:id="@+id/nav_gallery"
-             android:icon="@drawable/ic_menu_gallery"
-             android:title="@string/gallery" />
-         <item
              android:id="@+id/nav_slideshow"
              android:icon="@drawable/ic_menu_slideshow"
              android:title="@string/slideshow" />

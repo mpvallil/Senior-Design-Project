@@ -29,7 +29,7 @@ public class DownloadActivity extends FragmentActivity implements DownloadCallba
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_download);
-        mNetworkFragment = NetworkFragment.getInstance(getSupportFragmentManager(), "http://18.222.255.239:3000/");
+        mNetworkFragment = NetworkFragment.getInstance(getSupportFragmentManager(), "http://18.219.176.77:3000/json");
 
         send_request_button = findViewById(R.id.test_request_button_btn);
 

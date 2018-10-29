@@ -1,9 +1,14 @@
 package ncsu.project15.ece484_project15_client;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Fragment;
+import android.app.FragmentTransaction;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.PorterDuff;
 import android.location.Location;
 import android.os.Build;
 import android.os.Looper;
@@ -18,9 +23,13 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.PopupMenu;
+import android.widget.PopupWindow;
 import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -46,7 +55,7 @@ import java.util.List;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
-
+    private FilterFragment mFilterFragment;
     private GoogleMap mMap;
     private LocationRequest mLocationRequest;
     Location mLastLocation;
@@ -56,8 +65,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     CameraPosition position;
     boolean followLocation;
 
-    private DrawerLayout mDrawerLayout;
+    private DrawerLayout mDrawerLayoutMenu;
     private Button filter_button;
+
 
 
     @Override
@@ -76,17 +86,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         actionbar.setDisplayHomeAsUpEnabled(true);
         actionbar.setHomeAsUpIndicator(R.drawable.ic_menu_black_24dp);
 
-        mDrawerLayout = findViewById(R.id.drawer_layout);
+        mDrawerLayoutMenu = findViewById(R.id.drawer_layout);
         filter_button = findViewById(R.id.filter_button);
-
-        filter_button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-            }
-        });
-
-
 
         mLocationCallback = new LocationCallback() {
             @Override
@@ -111,7 +112,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                mDrawerLayout.openDrawer(GravityCompat.START);
+                mDrawerLayoutMenu.openDrawer(GravityCompat.START);
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -122,6 +123,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        mMap.getUiSettings().setMyLocationButtonEnabled(false);
 
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(1000); // one second interval
@@ -239,5 +241,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             // other 'case' lines to check for other
             // permissions this app might request.
         }
+    }
+
+    public void showPopup (View v) {
+        PopupMenu filterPopup = new PopupMenu(this, v);
+        filterPopup.inflate(R.menu.filter_view);
+        filterPopup.show();
+
     }
 }

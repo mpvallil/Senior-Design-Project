@@ -92,6 +92,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         actionbar.setDisplayHomeAsUpEnabled(true);
         actionbar.setHomeAsUpIndicator(R.drawable.ic_menu_black_24dp);
 
+        String string;
         mDrawerLayoutMenu = findViewById(R.id.drawer_layout);
         filter_button = findViewById(R.id.filter_button);
 

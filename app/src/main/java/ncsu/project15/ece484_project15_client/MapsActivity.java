@@ -3,8 +3,8 @@ package ncsu.project15.ece484_project15_client;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Fragment;
-import android.app.FragmentTransaction;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -26,8 +26,10 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ListView;
 import android.widget.PopupMenu;
 import android.widget.PopupWindow;
 import android.widget.Toast;
@@ -68,6 +70,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private DrawerLayout mDrawerLayoutMenu;
     private Button filter_button;
 
+    private NavigationView mNavigationView;
+    private FragmentTransaction mFragmentTransaction;
+
 
 
     @Override
@@ -88,6 +93,34 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         mDrawerLayoutMenu = findViewById(R.id.drawer_layout);
         filter_button = findViewById(R.id.filter_button);
+
+        mNavigationView = findViewById(R.id.nav_view);
+
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView.bringToFront();
+        navigationView.setNavigationItemSelectedListener(
+                new NavigationView.OnNavigationItemSelectedListener() {
+                    @Override
+                    public boolean onNavigationItemSelected(MenuItem menuItem) {
+                        // set item as selected to persist highlight
+                        // menuItem.setChecked(true);
+                        // close drawer when item is tapped
+                        mDrawerLayoutMenu.closeDrawers();
+                        int id = menuItem.getItemId();
+                        Log.i("onNavigationItem",  Integer.toString(id) + " is button id. wanted id is " + Integer.toString(R.id.test_SendDocument));
+                        switch(id) {
+                            case R.id.test_SendDocument: {
+                                startActivity(new Intent(MapsActivity.this, DownloadActivity.class));
+
+
+                            }
+                        }
+
+                        return true;
+                    }
+                });
+
+
 
         mLocationCallback = new LocationCallback() {
             @Override

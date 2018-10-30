@@ -1,5 +1,7 @@
 package ncsu.project15.ece484_project15_client;
 
+import android.app.Fragment;
+import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -7,6 +9,8 @@ import android.view.View;
 import android.widget.Button;
 
 public class MainMenu extends AppCompatActivity {
+
+    PrinterOwnerFragment mPrinterOwnerFragment = new PrinterOwnerFragment();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -16,6 +20,7 @@ public class MainMenu extends AppCompatActivity {
         Button test_maps_button = findViewById(R.id.test_map_layout_button);
         Button test_login_button = findViewById(R.id.test_login_button);
         Button test_send_document_button = findViewById(R.id.test_send_document_button);
+
 
         test_maps_button.setOnClickListener(new View.OnClickListener() {
 

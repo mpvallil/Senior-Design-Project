@@ -19,23 +19,35 @@ public class DownloadActivity extends FragmentActivity implements DownloadCallba
     // that is used to execute network ops.
     private NetworkFragment mNetworkFragment;
 
+
     // Boolean telling us whether a download is in progress, so we don't trigger overlapping
     // downloads with consecutive button clicks.
     private boolean mDownloading = false;
     // Test Button to send HTTP requests
     Button send_request_button;
+    // Test Button to send HTTP POST
+    Button send_post_button;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_download);
-        mNetworkFragment = NetworkFragment.getInstance(getSupportFragmentManager(), "http://18.219.176.77:3000/json");
 
         send_request_button = findViewById(R.id.test_request_button_btn);
+        send_post_button = findViewById(R.id.test_post_button_btn);
 
         send_request_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                mNetworkFragment = NetworkFragment.getInstance(getSupportFragmentManager(), NetworkFragment.URL_GET);
+                startDownload();
+            }
+        });
+
+        send_post_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mNetworkFragment = NetworkFragment.getInstance(getSupportFragmentManager(), NetworkFragment.URL_POST);
                 startDownload();
             }
         });

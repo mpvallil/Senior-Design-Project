@@ -3,6 +3,7 @@ package ncsu.project15.ece484_project15_client;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.content.Context;
@@ -12,22 +13,34 @@ import android.util.JsonReader;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.google.gson.JsonParser;
+
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
 
 import javax.net.ssl.HttpsURLConnection;
+
 
 /**
  * Implementation of headless Fragment that runs an AsyncTask to fetch data from the network.
  */
 public class NetworkFragment extends Fragment {
+    public static final String URL_GET = "http://18.219.176.77:3000/json";
+    public static final String URL_POST = "http://18.219.176.77:3000/post";
+
     public static final String TAG = "NetworkFragment";
 
     private static final String URL_KEY = "Url Key";
@@ -207,6 +220,7 @@ public class NetworkFragment extends Fragment {
      */
     private String downloadUrl(URL url) throws IOException {
         InputStream stream = null;
+        OutputStream os = null;
         HttpURLConnection connection = null;
         String result = null;
         try {
@@ -216,12 +230,29 @@ public class NetworkFragment extends Fragment {
             // Timeout for connection.connect() arbitrarily set to 3000ms.
             connection.setConnectTimeout(3000);
             // For this use case, set HTTP method to GET.
-            connection.setRequestMethod("GET");
-            // Already true by default but setting just in case; needs to be true since this request
-            // is carrying an input (response) body.
-            connection.setDoInput(true);
-            // Open communications link (network traffic occurs here).
-            connection.connect();
+
+            Log.i("downloadURL", "arrived at switch");
+            switch(url.toString()) {
+                case URL_GET: {
+                    connection.setRequestMethod("GET");
+                    connection.setDoInput(true);
+                    connection.connect();
+                    break;
+                }
+
+                case URL_POST: {
+                    connection.setRequestMethod("POST");
+                    connection.setRequestProperty("Content-Type", "application/json");
+                    connection.setDoOutput(true);
+                    connection.connect();
+                    os = connection.getOutputStream();
+                    Printer printer = new Printer("printer1");
+                    os.write(printer.getJson().getBytes());
+                    os.flush();
+                    os.close();
+                    break;
+                }
+            }
             mCallback.onProgressUpdate(DownloadCallback.Progress.CONNECT_SUCCESS, 0);
             int responseCode = connection.getResponseCode();
             if (responseCode != HttpsURLConnection.HTTP_OK) {
@@ -232,7 +263,12 @@ public class NetworkFragment extends Fragment {
             mCallback.onProgressUpdate(DownloadCallback.Progress.GET_INPUT_STREAM_SUCCESS, 0);
             if (stream != null) {
                 // Converts Stream to String with max length of 500.
-                result = readStream(stream, 500);
+                List<Printer> printList = readJsonStream(stream);
+                ArrayList<String> printerNames = new ArrayList<>();
+                for (Printer printer:printList) {
+                   printerNames.add(printer.getName());
+                }
+                result = printerNames.toString();
                 Log.i("DownloadTask", result);
 
             }
@@ -270,4 +306,41 @@ public class NetworkFragment extends Fragment {
         return buffer.toString();
     }
 
+
+
+    public List<Printer> readJsonStream(InputStream in) throws IOException {
+        JsonReader reader = new JsonReader(new InputStreamReader(in, "UTF-8"));
+        try {
+            return readMessagesArray(reader);
+        } finally {
+            reader.close();
+        }
+    }
+
+    private List<Printer> readMessagesArray(JsonReader reader) throws IOException {
+        List<Printer> messages = new ArrayList<>();
+
+        reader.beginArray();
+        while (reader.hasNext()) {
+            messages.add(readMessage(reader));
+        }
+        reader.endArray();
+        return messages;
+    }
+
+    private Printer readMessage(JsonReader reader) throws IOException {
+        String printerName = null;
+
+        reader.beginObject();
+        while (reader.hasNext()) {
+            String name = reader.nextName();
+            if (name.equals("name")) {
+                printerName = reader.nextString();
+            } else {
+                reader.skipValue();
+            }
+        }
+        reader.endObject();
+        return new Printer(printerName);
+    }
 }

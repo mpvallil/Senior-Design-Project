@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
+import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -54,19 +55,11 @@ public class NetworkFragment extends Fragment {
      * from.
      */
     public static NetworkFragment getInstance(FragmentManager fragmentManager, String url) {
-        // Recover NetworkFragment in case we are re-creating the Activity due to a config change.
-        // This is necessary because NetworkFragment might have a task that began running before
-        // the config change occurred and has not finished yet.
-        // The NetworkFragment is recoverable because it calls setRetainInstance(true).
-        NetworkFragment networkFragment = (NetworkFragment) fragmentManager
-                .findFragmentByTag(NetworkFragment.TAG);
-        if (networkFragment == null) {
-            networkFragment = new NetworkFragment();
-            Bundle args = new Bundle();
-            args.putString(URL_KEY, url);
-            networkFragment.setArguments(args);
-            fragmentManager.beginTransaction().add(networkFragment, TAG).commit();
-        }
+        NetworkFragment networkFragment = new NetworkFragment();
+        Bundle args = new Bundle();
+        args.putString(URL_KEY, url);
+        networkFragment.setArguments(args);
+        fragmentManager.beginTransaction().add(networkFragment, TAG).commit();
         return networkFragment;
     }
 
@@ -105,6 +98,7 @@ public class NetworkFragment extends Fragment {
         cancelDownload();
         mDownloadTask = new DownloadTask(mCallback);
         mDownloadTask.execute(mUrlString);
+        Log.i("nf startdownload", mUrlString);
     }
 
     /**
@@ -182,6 +176,7 @@ public class NetworkFragment extends Fragment {
                         throw new IOException("No response received.");
                     }
                 } catch(Exception e) {
+                    Log.i("nf dt doinbackground", e.toString());
                     result = new Result(e);
                 }
             }
@@ -220,7 +215,7 @@ public class NetworkFragment extends Fragment {
      */
     private String downloadUrl(URL url) throws IOException {
         InputStream stream = null;
-        OutputStream os = null;
+        OutputStream os;
         HttpURLConnection connection = null;
         String result = null;
         try {
@@ -239,7 +234,6 @@ public class NetworkFragment extends Fragment {
                     connection.connect();
                     break;
                 }
-
                 case URL_POST: {
                     connection.setRequestMethod("POST");
                     connection.setRequestProperty("Content-Type", "application/json");
@@ -263,14 +257,15 @@ public class NetworkFragment extends Fragment {
             mCallback.onProgressUpdate(DownloadCallback.Progress.GET_INPUT_STREAM_SUCCESS, 0);
             if (stream != null) {
                 // Converts Stream to String with max length of 500.
-                List<Printer> printList = readJsonStream(stream);
-                ArrayList<String> printerNames = new ArrayList<>();
-                for (Printer printer:printList) {
-                   printerNames.add(printer.getName());
+                result = readStream(stream, 500);
+                if (url.toString().equals(URL_GET)) {
+                    List<Printer> printList = readJsonStream(result);
+                    ArrayList<String> printerNames = new ArrayList<>();
+                    for (Printer printer : printList) {
+                        printerNames.add(printer.getName());
+                    }
+                    result = printerNames.toString();
                 }
-                result = printerNames.toString();
-                Log.i("DownloadTask", result);
-
             }
         } finally {
             // Close Stream and disconnect HTTPS connection.
@@ -308,8 +303,8 @@ public class NetworkFragment extends Fragment {
 
 
 
-    public List<Printer> readJsonStream(InputStream in) throws IOException {
-        JsonReader reader = new JsonReader(new InputStreamReader(in, "UTF-8"));
+    public List<Printer> readJsonStream(String in) throws IOException {
+        JsonReader reader = new JsonReader(new StringReader(in));
         try {
             return readMessagesArray(reader);
         } finally {

@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -111,11 +112,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         switch(id) {
                             case R.id.test_SendDocument: {
                                 startActivity(new Intent(MapsActivity.this, DownloadActivity.class));
-
-
+                                break;
                             }
                         }
-
                         return true;
                     }
                 });

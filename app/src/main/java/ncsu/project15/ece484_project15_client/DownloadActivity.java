@@ -18,7 +18,8 @@ public class DownloadActivity extends FragmentActivity implements DownloadCallba
     // Keep a reference to the NetworkFragment, which owns the AsyncTask object
     // that is used to execute network ops.
     private NetworkFragment mNetworkFragment;
-
+    private NetworkFragment mNetworkFragmentGET;
+    private NetworkFragment mNetworkFragmentPOST;
 
     // Boolean telling us whether a download is in progress, so we don't trigger overlapping
     // downloads with consecutive button clicks.
@@ -35,29 +36,44 @@ public class DownloadActivity extends FragmentActivity implements DownloadCallba
 
         send_request_button = findViewById(R.id.test_request_button_btn);
         send_post_button = findViewById(R.id.test_post_button_btn);
+        mNetworkFragmentGET = NetworkFragment.getInstance(getSupportFragmentManager(), NetworkFragment.URL_GET);
+        mNetworkFragmentPOST = NetworkFragment.getInstance(getSupportFragmentManager(), NetworkFragment.URL_POST);
+        mNetworkFragment = NetworkFragment.getInstance(getSupportFragmentManager(), NetworkFragment.URL_POST);
+
 
         send_request_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mNetworkFragment = NetworkFragment.getInstance(getSupportFragmentManager(), NetworkFragment.URL_GET);
-                startDownload();
+                startDownload(send_request_button.getId());
             }
         });
 
         send_post_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mNetworkFragment = NetworkFragment.getInstance(getSupportFragmentManager(), NetworkFragment.URL_POST);
-                startDownload();
+                startDownload(send_post_button.getId());
             }
         });
     }
 
-    private void startDownload() {
-        if (!mDownloading && mNetworkFragment != null) {
-            // Execute the async download.
-            mNetworkFragment.startDownload();
-            mDownloading = true;
+    private void startDownload(int btn) {
+        switch (btn) {
+            case R.id.test_request_button_btn: {
+                if (!mDownloading && mNetworkFragmentGET != null) {
+                    // Execute the async download.
+                    mNetworkFragmentGET.startDownload();
+                    mDownloading = true;
+                }
+                break;
+            }
+            case R.id.test_post_button_btn: {
+                if (!mDownloading && mNetworkFragmentPOST != null) {
+                    // Execute the async download.
+                    mNetworkFragmentPOST.startDownload();
+                    mDownloading = true;
+                }
+                break;
+            }
         }
     }
 

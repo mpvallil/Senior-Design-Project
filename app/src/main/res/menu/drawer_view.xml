@@ -7,8 +7,8 @@
             android:id="@+id/test_SendDocument"
             android:title="@string/test_send_document" />
         <item
-            android:id="@+id/test_Login"
-            android:title="@string/test_login" />
+            android:id="@+id/test_GoogleMap"
+            android:title="@string/test_GoogleMap" />
         <item
             android:id="@+id/test_PrinterLanding"
             android:title="@string/app_name" />

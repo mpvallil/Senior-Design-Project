@@ -1,46 +1,33 @@
 package ncsu.project15.ece484_project15_client;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.AlertDialog;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
+import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.PorterDuff;
 import android.location.Location;
-import android.os.Build;
+import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Looper;
-import android.support.design.widget.NavigationView;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.MenuItem;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.AdapterView;
+import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.FrameLayout;
-import android.widget.ListView;
-import android.widget.PopupMenu;
-import android.widget.PopupWindow;
 import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -49,17 +36,13 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 
-import java.util.List;
+public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, View.OnClickListener {
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
-
-    private FilterFragment mFilterFragment;
     private GoogleMap mMap;
+    SupportMapFragment mapFragment;
     private LocationRequest mLocationRequest;
     Location mLastLocation;
     Circle mCurrentLocationCircle;
@@ -67,59 +50,49 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     LocationCallback mLocationCallback;
     CameraPosition position;
     boolean followLocation;
+    private OnMapsInteractionListener mListener;
 
-    private DrawerLayout mDrawerLayoutMenu;
-    private Button filter_button;
-
-    private NavigationView mNavigationView;
-    private FragmentTransaction mFragmentTransaction;
+    View myLocationButton;
+    View defaultMyLocationButton;
 
 
+
+    public static GoogleMapsFragment newInstance() {
+        GoogleMapsFragment fragment = new GoogleMapsFragment();
+        return fragment;
+    }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_maps);
+    }
 
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+
+        View mView = inflater.inflate(R.layout.fragment_google_maps, null);
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(getActivity());
+
+        // Get the button view
+        defaultMyLocationButton = ((View) mView.findViewById(Integer.parseInt("1")).getParent()).findViewById(Integer.parseInt("2"));
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        ActionBar actionbar = getSupportActionBar();
-        actionbar.setDisplayHomeAsUpEnabled(true);
-        actionbar.setHomeAsUpIndicator(R.drawable.ic_menu_black_24dp);
 
-        mDrawerLayoutMenu = findViewById(R.id.drawer_layout);
-        filter_button = findViewById(R.id.filter_button);
+        return mView;
+    }
 
-        mNavigationView = findViewById(R.id.nav_view);
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.google_map);
+        if (mapFragment != null) {
+            mapFragment.getMapAsync(this);
+        }
 
-        NavigationView navigationView = findViewById(R.id.nav_view);
-        navigationView.bringToFront();
-        navigationView.setNavigationItemSelectedListener(
-                new NavigationView.OnNavigationItemSelectedListener() {
-                    @Override
-                    public boolean onNavigationItemSelected(MenuItem menuItem) {
-                        // set item as selected to persist highlight
-                        // menuItem.setChecked(true);
-                        // close drawer when item is tapped
-                        mDrawerLayoutMenu.closeDrawers();
-                        int id = menuItem.getItemId();
-                        Log.i("onNavigationItem",  Integer.toString(id) + " is button id. wanted id is " + Integer.toString(R.id.test_SendDocument));
-                        switch(id) {
-                            case R.id.test_SendDocument: {
-                                startActivity(new Intent(MapsActivity.this, DownloadActivity.class));
-                                break;
-                            }
-                        }
-                        return true;
-                    }
-                });
-
-
+        myLocationButton = view.findViewById(R.id.myLocationButton);
+        myLocationButton.setOnClickListener(this);
 
         mLocationCallback = new LocationCallback() {
             @Override
@@ -130,45 +103,35 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 for (Location location : locationResult.getLocations()) {
                     Log.i("MapsActivity", "Location: " + location.getLatitude() + " " + location.getLongitude());
                     LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                    if(position != null && followLocation) {
+                    if (position != null && followLocation) {
                         Log.i("MapsActivity", "CameraPosition " + position.target);
                         mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
                     }
                     mLastLocation = location;
-                }
+                    }
             }
         };
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                mDrawerLayoutMenu.openDrawer(GravityCompat.START);
-                return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-
-
+    /**
+     * Manipulates the map once available.
+     * This callback is triggered when the map is ready to be used.
+     * This is where we can add markers or lines, add listeners or move the camera. In this case,
+     * we just add a marker near Sydney, Australia.
+     * If Google Play services is not installed on the device, the user will be prompted to install
+     * it inside the SupportMapFragment. This method will only be triggered once the user has
+     * installed Google Play services and returned to the app.
+     */
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         mMap.getUiSettings().setMyLocationButtonEnabled(false);
 
         mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(1000); // one second interval
+        mLocationRequest.setInterval(0); // one second interval
         mLocationRequest.setFastestInterval(1000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
 
-        mMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
-            @Override
-            public boolean onMyLocationButtonClick() {
-                followLocation = true;
-                return false;
-            }
-        });
 
         mMap.setOnCameraIdleListener(new GoogleMap.OnCameraIdleListener() {
             @Override
@@ -190,13 +153,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
+        checkLocationPermissionMethod();
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+    }
+
+    public void checkLocationPermissionMethod() {
+
+        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             // Permission has already been granted
-            mFusedLocationClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
+            mFusedLocationClient.getLastLocation().addOnSuccessListener(getActivity(), new OnSuccessListener<Location>() {
                 @Override
                 public void onSuccess(Location location) {
-                // Got last known location. In some rare situations this can be null.
+                    // Got last known location. In some rare situations this can be null.
                     if (location != null) {
                         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 15));
                     }
@@ -210,25 +178,24 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-
     public static final int MY_PERMISSIONS_ACCESS_FINE_LOCATION = 99;
     private void checkLocationPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
             // Permission is not granted
             // Should we show an explanation?
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION)) {
                 // Show an explanation to the user *asynchronously* -- don't block
                 // this thread waiting for the user's response! After the user
                 // sees the explanation, try again to request the permission.
-                new AlertDialog.Builder(this)
+                new AlertDialog.Builder(getActivity())
                         .setTitle("Location Permission Needed")
                         .setMessage("This app needs the Location permission, please accept to use location functionality")
                         .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
                                 //Prompt the user once explanation has been shown
-                                ActivityCompat.requestPermissions(MapsActivity.this,
+                                ActivityCompat.requestPermissions(getActivity(),
                                         new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                                         MY_PERMISSIONS_ACCESS_FINE_LOCATION );
                             }
@@ -237,7 +204,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         .show();
             } else {
                 // No explanation needed; request the permission
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_ACCESS_FINE_LOCATION);
+                ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_ACCESS_FINE_LOCATION);
 
                 // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
                 // app-defined int constant. The callback method gets the
@@ -258,16 +225,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // permission was granted, yay! Do the
                     // location-related task you need to do.
-                    if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                    if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                         mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback, Looper.myLooper());
                         mMap.setMyLocationEnabled(true);
                     }
                 } else {
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
-                    Toast.makeText(this, "permission denied", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getActivity(), "permission denied", Toast.LENGTH_LONG).show();
                 }
-                return;
             }
 
             // other 'case' lines to check for other
@@ -275,10 +241,63 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    public void showPopup (View v) {
-        PopupMenu filterPopup = new PopupMenu(this, v);
-        filterPopup.inflate(R.menu.filter_view);
-        filterPopup.show();
+    @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        if(!isVisibleToUser){
+            //When fragment is not visible
+            mFusedLocationClient.removeLocationUpdates(mLocationCallback);
+        } else {
+            checkLocationPermission();
+        }
+        Log.i("my_fragment","setUserVisibleHint: "+isVisibleToUser);
+    }
 
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof OnMapsInteractionListener) {
+            mListener = (OnMapsInteractionListener) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must implement OnFragmentInteractionListener");
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mListener = null;
+    }
+
+    @Override
+    public void onClick(View v) {
+        int id = v.getId();
+        switch (id) {
+            case R.id.myLocationButton: {
+                if(mMap != null) {
+                    if(defaultMyLocationButton != null) {
+                        mMap.getUiSettings().setMyLocationButtonEnabled(true);
+                        defaultMyLocationButton.callOnClick();
+                        mMap.getUiSettings().setMyLocationButtonEnabled(false);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * This interface must be implemented by activities that contain this
+     * fragment to allow an interaction in this fragment to be communicated
+     * to the activity and potentially other fragments contained in that
+     * activity.
+     * <p>
+     * See the Android Training lesson <a href=
+     * "http://developer.android.com/training/basics/fragments/communicating.html"
+     * >Communicating with Other Fragments</a> for more information.
+     */
+    public interface OnMapsInteractionListener {
+        // TODO: Update argument type and name
+        void onMapsInteraction(Uri uri);
     }
 }

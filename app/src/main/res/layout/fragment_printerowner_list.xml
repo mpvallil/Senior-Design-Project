@@ -6,8 +6,7 @@
     android:name="ncsu.project15.ece484_project15_client.PrinterOwnerFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginLeft="16dp"
-    android:layout_marginRight="16dp"
+    android:background="@color/colorPrimary"
+    app:layoutManager="android.support.v7.widget.LinearLayoutManager"
     tools:context=".PrinterOwnerFragment"
     tools:listitem="@layout/fragment_printerowner" />
-    <!--app:layoutManager="LinearLayoutManager"-->

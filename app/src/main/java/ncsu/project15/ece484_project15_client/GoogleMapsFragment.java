@@ -7,16 +7,19 @@ import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -24,6 +27,7 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -35,7 +39,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 
-public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback {
+public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, View.OnClickListener {
 
     private GoogleMap mMap;
     SupportMapFragment mapFragment;
@@ -46,6 +50,11 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback {
     LocationCallback mLocationCallback;
     CameraPosition position;
     boolean followLocation;
+    private OnMapsInteractionListener mListener;
+
+    View myLocationButton;
+    View defaultMyLocationButton;
+
 
 
     public static GoogleMapsFragment newInstance() {
@@ -66,6 +75,9 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback {
         View mView = inflater.inflate(R.layout.fragment_google_maps, null);
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(getActivity());
 
+        // Get the button view
+        defaultMyLocationButton = ((View) mView.findViewById(Integer.parseInt("1")).getParent()).findViewById(Integer.parseInt("2"));
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
 
         return mView;
@@ -78,6 +90,10 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback {
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
         }
+
+        myLocationButton = view.findViewById(R.id.myLocationButton);
+        myLocationButton.setOnClickListener(this);
+
         mLocationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
@@ -87,12 +103,12 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback {
                 for (Location location : locationResult.getLocations()) {
                     Log.i("MapsActivity", "Location: " + location.getLatitude() + " " + location.getLongitude());
                     LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                    if(position != null && followLocation) {
+                    if (position != null && followLocation) {
                         Log.i("MapsActivity", "CameraPosition " + position.target);
                         mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
                     }
                     mLastLocation = location;
-                }
+                    }
             }
         };
     }
@@ -109,20 +125,13 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        //mMap.getUiSettings().setMyLocationButtonEnabled(false);
+        mMap.getUiSettings().setMyLocationButtonEnabled(false);
 
         mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(1000); // one second interval
+        mLocationRequest.setInterval(0); // one second interval
         mLocationRequest.setFastestInterval(1000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
 
-        mMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
-            @Override
-            public boolean onMyLocationButtonClick() {
-                followLocation = true;
-                return false;
-            }
-        });
 
         mMap.setOnCameraIdleListener(new GoogleMap.OnCameraIdleListener() {
             @Override
@@ -230,5 +239,65 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback {
             // other 'case' lines to check for other
             // permissions this app might request.
         }
+    }
+
+    @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        if(!isVisibleToUser){
+            //When fragment is not visible
+            mFusedLocationClient.removeLocationUpdates(mLocationCallback);
+        } else {
+            checkLocationPermission();
+        }
+        Log.i("my_fragment","setUserVisibleHint: "+isVisibleToUser);
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof OnMapsInteractionListener) {
+            mListener = (OnMapsInteractionListener) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must implement OnFragmentInteractionListener");
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mListener = null;
+    }
+
+    @Override
+    public void onClick(View v) {
+        int id = v.getId();
+        switch (id) {
+            case R.id.myLocationButton: {
+                if(mMap != null) {
+                    if(defaultMyLocationButton != null) {
+                        mMap.getUiSettings().setMyLocationButtonEnabled(true);
+                        defaultMyLocationButton.callOnClick();
+                        mMap.getUiSettings().setMyLocationButtonEnabled(false);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * This interface must be implemented by activities that contain this
+     * fragment to allow an interaction in this fragment to be communicated
+     * to the activity and potentially other fragments contained in that
+     * activity.
+     * <p>
+     * See the Android Training lesson <a href=
+     * "http://developer.android.com/training/basics/fragments/communicating.html"
+     * >Communicating with Other Fragments</a> for more information.
+     */
+    public interface OnMapsInteractionListener {
+        // TODO: Update argument type and name
+        void onMapsInteraction(Uri uri);
     }
 }

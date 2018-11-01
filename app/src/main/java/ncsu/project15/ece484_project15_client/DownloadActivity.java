@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.util.Log;
@@ -45,19 +46,19 @@ public class DownloadActivity extends FragmentActivity implements DownloadCallba
         send_request_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startDownload(send_request_button.getId());
+                //(send_request_button.getId());
             }
         });
 
         send_post_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startDownload(send_post_button.getId());
+                //MainActivity.startDownload(send_post_button.getId());
             }
         });
     }
 
-    private void startDownload(int btn) {
+    public void startDownload(int btn) {
         switch (btn) {
             case R.id.test_request_button_btn: {
                 if (!mDownloading && mNetworkFragmentGET != null) {
@@ -98,7 +99,7 @@ public class DownloadActivity extends FragmentActivity implements DownloadCallba
         switch(progressCode) {
 
             case Progress.ERROR:
-             
+
                 break;
             case Progress.CONNECT_SUCCESS:
 

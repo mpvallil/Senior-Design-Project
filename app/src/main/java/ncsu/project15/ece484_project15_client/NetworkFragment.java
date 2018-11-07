@@ -64,7 +64,7 @@ public class NetworkFragment extends Fragment {
         args.putString(URL_KEY, url);
         networkFragment.setArguments(args);
         fragmentManager.beginTransaction().add(networkFragment, TAG).commit();
-        String penis = "penis";
+
         return networkFragment;
     }
 

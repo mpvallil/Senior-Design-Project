@@ -10,7 +10,7 @@
     <android.support.design.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fitsSystemWindows="true">
+        android:fitsSystemWindows="false">
 
         <FrameLayout
             android:id="@+id/flContent"
@@ -19,24 +19,21 @@
 
     </android.support.design.widget.CoordinatorLayout>
      <!--This LinearLayout represents the contents of the screen  -->
-    <android.support.design.widget.AppBarLayout
-        android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:elevation="0dp"
-        android:background="@android:color/transparent"
-        android:layout_marginTop="19dp">
-
-
-
-        <android.support.v7.widget.Toolbar
-            android:id="@+id/toolbar_new"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"/>
-
-     </android.support.design.widget.AppBarLayout>
 
     <!-- The navigation drawer that comes from the left -->
     <!-- Note that `android:layout_gravity` needs to be set to 'start' -->
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/my_toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@android:color/transparent"
+            android:elevation="4dp"/>
+    </android.support.constraint.ConstraintLayout>
+
     <android.support.design.widget.NavigationView
         android:id="@+id/nvView"
         android:layout_width="wrap_content"

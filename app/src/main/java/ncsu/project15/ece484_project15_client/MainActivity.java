@@ -9,6 +9,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.util.Log;
@@ -26,26 +27,53 @@ import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, DownloadCallback<String>, SettingsFragment.OnSettingsInteractionListener,
-                        GoogleMapsFragment.OnMapsInteractionListener {
-
+                        GoogleMapsFragment.OnMapsInteractionListener, MainMenu.OnMainMenuInteractionListener {
+    /** Fragment references */
+    // Fields for naming Fragments from the Nav Menu
     private static final String TAG_MAIN_MENU_FRAG = "MAIN_MENU_FRAG";
     public static final String TAG_GOOGLE_MAPS_FRAG = "GOOGLE_MAPS_FRAG";
     public static final String TAG_SETTINGS_FRAG = "SETTINGS_FRAG";
+    // References to Nav Menu Fragments
     GoogleMapsFragment mGoogleMapsFragment;
+    SettingsFragment mSettingsFragment;
+    MainMenu mMainMenuFragment;
+    Fragment currentFragment;
+    private FragmentManager fm;
+    private final FragmentManager.OnBackStackChangedListener backStackListener = new FragmentManager.OnBackStackChangedListener() {
+        @Override
+        public void onBackStackChanged() {
+            if (!mGoogleMapsFragment.isVisible()) {
+                toggle.setDrawerIndicatorEnabled(false);
+                toggle.setHomeAsUpIndicator(R.drawable.ic_baseline_arrow_back_24px);
+                toggle.setToolbarNavigationClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        onBackPressed();
+                    }
+                });
+            } else {
+                toggle.setDrawerIndicatorEnabled(true);
+                toggle.setHomeAsUpIndicator(R.drawable.ic_menu_black_24dp);
+                toggle.setToolbarNavigationClickListener(null);
+            }
+        }
+    };
 
+    /** Network Activity fields */
     // Keep a reference to the NetworkFragment, which owns the AsyncTask object
     // that is used to execute network ops.
     private NetworkFragment mNetworkFragment;
     private NetworkFragment mNetworkFragmentGET;
     private NetworkFragment mNetworkFragmentPOST;
-
     // Boolean telling us whether a download is in progress, so we don't trigger overlapping
     // downloads with consecutive button clicks.
     private boolean mDownloading = false;
 
+    /** Layout fields */
     private DrawerLayout mDrawer;
     private Toolbar toolbar;
     private NavigationView nvDrawer;
+    ActionBarDrawerToggle toggle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,28 +81,33 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         // Set Toolbar
-        toolbar = (Toolbar) findViewById(R.id.toolbar_new);
+        toolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(toolbar);
 
         // Find the DrawerLayout
         mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+        toggle = new ActionBarDrawerToggle(
                 this, mDrawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         mDrawer.addDrawerListener(toggle);
         toggle.syncState();
 
         nvDrawer = (NavigationView) findViewById(R.id.nvView);
         nvDrawer.setNavigationItemSelectedListener(this);
+        fm = getSupportFragmentManager();
+        fm.addOnBackStackChangedListener(backStackListener);
 
         mGoogleMapsFragment = GoogleMapsFragment.newInstance();
-        getSupportFragmentManager()
+        fm
                 .beginTransaction()
                 .add(R.id.flContent, mGoogleMapsFragment, TAG_GOOGLE_MAPS_FRAG)
-                .addToBackStack(TAG_GOOGLE_MAPS_FRAG)
                 .commit();
-        nvDrawer.setCheckedItem(R.id.test_GoogleMap);
-        toolbar.setOverflowIcon(ContextCompat.getDrawable(getApplicationContext(),R.drawable.ic_baseline_filter_list_24px));
+        currentFragment = mGoogleMapsFragment;
+        toolbar.setOverflowIcon(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_baseline_filter_list_24px));
 
+        //Create Network Fragments
+        mNetworkFragmentGET = NetworkFragment.getInstance(getSupportFragmentManager(), NetworkFragment.URL_GET);
+        mNetworkFragmentPOST = NetworkFragment.getInstance(getSupportFragmentManager(), NetworkFragment.URL_POST);
+        mNetworkFragment = NetworkFragment.getInstance(getSupportFragmentManager(), NetworkFragment.URL_POST);
     }
 
     @Override
@@ -90,78 +123,58 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
+        toolbar.setBackground(null);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        switch (item.getItemId()) {
-            case android.R.id.home: {
-                mDrawer.openDrawer(GravityCompat.START);
-                return true;
-            }
-        }
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
+        return toggle.onOptionsItemSelected(item);
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
+        item.setChecked(false);
         int id = item.getItemId();
-        FragmentManager fm = getSupportFragmentManager();
+        Fragment newFragment;
         switch (id) {
-            case R.id.test_GoogleMap: {
+            case R.id.nav_drawer_Settings: {
                 if (!item.isChecked()) {
-                    if (mGoogleMapsFragment != null) {
-                        fm.beginTransaction().remove(fm.findFragmentById(R.id.flContent)).commit();
-                        fm.beginTransaction().show(mGoogleMapsFragment).commit();
-                        mGoogleMapsFragment.setUserVisibleHint(true);
-                    } else {
-                        fm.beginTransaction().add(R.id.flContent, new GoogleMapsFragment(), TAG_GOOGLE_MAPS_FRAG).commit();
-                        mGoogleMapsFragment = (GoogleMapsFragment)fm.findFragmentByTag(TAG_GOOGLE_MAPS_FRAG);
+                    newFragment = new SettingsFragment();
+                    if (currentFragment == mGoogleMapsFragment) {
+                        fm.beginTransaction().detach(mGoogleMapsFragment).commit();
                     }
-                    toolbar.setOverflowIcon(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_baseline_filter_list_24px));
+                    fm.beginTransaction().detach(mGoogleMapsFragment).replace(R.id.flContent, newFragment, TAG_SETTINGS_FRAG).addToBackStack(null).commit();
+
+                    toolbar.setOverflowIcon(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_baseline_more_vert_24px));
                     item.setChecked(true);
+                    currentFragment = newFragment;
                 }
                 break;
             }
-            case R.id.test_Settings: {
+            case R.id.nav_drawer_MainMenu: {
                 if (!item.isChecked()) {
-                    if (mGoogleMapsFragment.isVisible()) {
-                        fm.beginTransaction().hide(mGoogleMapsFragment).commit();
-                        mGoogleMapsFragment.setUserVisibleHint(false);
-                        fm.beginTransaction().add(R.id.flContent, SettingsFragment.newInstance("1", "2"), TAG_SETTINGS_FRAG).commit();
-                    } else {
-                        fm.beginTransaction().replace(R.id.flContent, SettingsFragment.newInstance("1", "2"), TAG_SETTINGS_FRAG).commit();
+                    newFragment = new MainMenu();
+                    if (currentFragment == mGoogleMapsFragment) {
+                        fm.beginTransaction().detach(mGoogleMapsFragment).commit();
                     }
+                    fm.beginTransaction()
+                            .setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right, R.anim.slide_in_left, R.anim.slide_out_right)
+                            .detach(mGoogleMapsFragment)
+                            .replace(R.id.flContent, newFragment, TAG_MAIN_MENU_FRAG)
+                            .addToBackStack(null)
+                            .commit();
+
                     toolbar.setOverflowIcon(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_baseline_more_vert_24px));
                     item.setChecked(true);
+                    currentFragment = newFragment;
                 }
                 break;
             }
-            case R.id.test_MainMenu: {
-                if (!item.isChecked()) {
-                    if (mGoogleMapsFragment.isVisible()) {
-                        fm.beginTransaction().hide(mGoogleMapsFragment).commit();
-                        mGoogleMapsFragment.setUserVisibleHint(false);
-                        fm.beginTransaction().add(R.id.flContent, MainMenu.newInstance("1"), TAG_MAIN_MENU_FRAG).commit();
-                    } else {
-                        fm.beginTransaction().replace(R.id.flContent, MainMenu.newInstance("1"), TAG_SETTINGS_FRAG).commit();
-                    }
-                    toolbar.setOverflowIcon(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_baseline_more_vert_24px));
-                    item.setChecked(true);
-                }
+            case R.id.nav_drawer_Logout: {
+
 
             }
             default: {
@@ -175,7 +188,6 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-
     public void startDownload(int btn) {
         switch (btn) {
             case R.id.test_request_button_btn: {
@@ -186,7 +198,7 @@ public class MainActivity extends AppCompatActivity
                 }
                 break;
             }
-            case R.id.test_post_button_btn: {
+            case R.id.test_send_document_button: {
                 if (!mDownloading && mNetworkFragmentPOST != null) {
                     // Execute the async download.
                     mNetworkFragmentPOST.startDownload();
@@ -248,7 +260,16 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onMapsInteraction(Uri uri) {
+    public void onMapsInteraction(Printer printer) {
+        startDownload(R.id.test_request_button_btn);
+    }
 
+    @Override
+    public void onMainMenuInteraction(Integer btn) {
+        switch(btn) {
+            case R.id.test_send_document_button: {
+                startDownload(btn);
+            }
+        }
     }
 }

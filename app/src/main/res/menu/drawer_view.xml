@@ -4,19 +4,20 @@
         android:id="@+id/group_nav"
         android:checkableBehavior="single">
         <item
-            android:id="@+id/test_MainMenu"
+            android:id="@+id/nav_drawer_MainMenu"
             android:title="@string/test_MainMenu"/>
         <item
-            android:id="@+id/test_SendDocument"
+            android:id="@+id/nav_drawer_SendDocument"
             android:title="@string/test_send_document" />
         <item
-            android:id="@+id/test_GoogleMap"
-            android:title="@string/test_GoogleMap" />
+            android:id="@+id/nav_drawer_PrinterLanding"
+            android:title="@string/nav_drawer_Owner" />
         <item
-            android:id="@+id/test_PrinterLanding"
-            android:title="@string/app_name" />
-        <item
-            android:id="@+id/test_Settings"
+            android:id="@+id/nav_drawer_Settings"
             android:title="@string/nav_drawer_Settings" />
+        <item
+            android:id="@+id/nav_drawer_Logout"
+            android:title="@string/nav_drawer_Logout"
+            android:checkable="false" />
     </group>
  </menu>

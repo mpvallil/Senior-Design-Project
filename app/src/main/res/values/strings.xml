@@ -41,6 +41,9 @@
     <string name="nav_header_title">Android Studio</string>
     <string name="nav_header_subtitle">android.studio@android.com</string>
     <string name="nav_header_desc">Navigation header</string>
+    <string name="nav_drawer_Map">Find a Printer</string>
+    <string name="nav_drawer_Owner">Add/Manage Printer</string>
+    <string name="nav_drawer_Logout">Log out</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     // SettingsFragment

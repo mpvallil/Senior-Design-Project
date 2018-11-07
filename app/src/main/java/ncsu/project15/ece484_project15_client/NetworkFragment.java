@@ -3,6 +3,7 @@ package ncsu.project15.ece484_project15_client;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -17,6 +18,9 @@ import com.google.gson.JsonParser;
 
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -39,8 +43,8 @@ import javax.net.ssl.HttpsURLConnection;
  * Implementation of headless Fragment that runs an AsyncTask to fetch data from the network.
  */
 public class NetworkFragment extends Fragment {
-    public static final String URL_GET = "http://18.219.176.77:3000/json";
-    public static final String URL_POST = "http://18.219.176.77:3000/post";
+    public static final String URL_GET = "https://plink.ink/json";
+    public static final String URL_POST = "https://plink.ink/upload";
 
     public static final String TAG = "NetworkFragment";
 
@@ -216,10 +220,10 @@ public class NetworkFragment extends Fragment {
     private String downloadUrl(URL url) throws IOException {
         InputStream stream = null;
         OutputStream os;
-        HttpURLConnection connection = null;
+        HttpsURLConnection connection = null;
         String result = null;
         try {
-            connection = (HttpURLConnection) url.openConnection();
+            connection = (HttpsURLConnection) url.openConnection();
             // Timeout for reading InputStream arbitrarily set to 3000ms.
             connection.setReadTimeout(3000);
             // Timeout for connection.connect() arbitrarily set to 3000ms.
@@ -235,13 +239,21 @@ public class NetworkFragment extends Fragment {
                     break;
                 }
                 case URL_POST: {
+
                     connection.setRequestMethod("POST");
-                    connection.setRequestProperty("Content-Type", "application/json");
+                    connection.setRequestProperty("Connection-Type", "Keep-Alive");
+                    connection.setRequestProperty("Content-Type", "application/octet-stream");
+                    connection.setRequestProperty("Content-Disposition", "attachment;filename=\"actb.txt\"");
                     connection.setDoOutput(true);
                     connection.connect();
                     os = connection.getOutputStream();
-                    Printer printer = new Printer("printer1");
-                    os.write(printer.getJson().getBytes());
+                    //String string = "--*****\r\nContent-Disposition: form-data; name=\"Tickets\";filename=\"Tickets.pdf\"\r\n\r\n";
+                    //os.write(string.getBytes());
+                    Printer printer = new Printer();
+                    printer.setName("printer1");
+                    fileToBytes(os);
+                    //string = "\r\n--*****--\r\n";
+                    //os.write(string.getBytes());
                     os.flush();
                     os.close();
                     break;
@@ -250,7 +262,7 @@ public class NetworkFragment extends Fragment {
             mCallback.onProgressUpdate(DownloadCallback.Progress.CONNECT_SUCCESS, 0);
             int responseCode = connection.getResponseCode();
             if (responseCode != HttpsURLConnection.HTTP_OK) {
-                throw new IOException("HTTP error code: " + responseCode);
+                throw new IOException("HTTPs error code: " + responseCode);
             }
             // Retrieve the response body as an InputStream.
             stream = connection.getInputStream();
@@ -336,6 +348,37 @@ public class NetworkFragment extends Fragment {
             }
         }
         reader.endObject();
-        return new Printer(printerName);
+        Printer printer = new Printer();
+        printer.setName(printerName);
+        return printer;
+    }
+
+    private void fileToBytes(OutputStream os) {
+        File file = new File("sdcard/Download", "actb.txt");
+        Log.i("fileToByte", file.toString());
+        FileInputStream fis = null;
+        byte buffer[];
+        try {
+            fis = new FileInputStream(file);
+
+            buffer = new byte[4096];
+            int read = 0;
+
+            while((read = fis.read(buffer)) != -1) {
+                os.write(buffer, 0, read);
+                Log.i("file", Integer.toString(read));
+            }
+        } catch (FileNotFoundException e) {
+            System.out.println("File not found: " + e.toString());
+        } catch (IOException e) {
+            System.out.println("Exception reading file: " + e.toString());
+        } finally {
+            try {
+                if (fis != null) {
+                    fis.close();
+                }
+            } catch (IOException ignored) {
+            }
+        }
     }
 }

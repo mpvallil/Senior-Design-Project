@@ -24,15 +24,20 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.Toast;
+import ncsu.project15.ece484_project15_client.NetworkFragmentBuilder;
+import com.google.gson.JsonObject;
+
+import java.io.File;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, DownloadCallback<String>, SettingsFragment.OnSettingsInteractionListener,
-                        GoogleMapsFragment.OnMapsInteractionListener, MainMenu.OnMainMenuInteractionListener {
+                        GoogleMapsFragment.OnMapsInteractionListener, MainMenu.OnMainMenuInteractionListener, ManageDocument.OnManageDocumentInteractionListener {
     /** Fragment references */
     // Fields for naming Fragments from the Nav Menu
     private static final String TAG_MAIN_MENU_FRAG = "MAIN_MENU_FRAG";
     public static final String TAG_GOOGLE_MAPS_FRAG = "GOOGLE_MAPS_FRAG";
     public static final String TAG_SETTINGS_FRAG = "SETTINGS_FRAG";
+    public static final String TAG_MANAGE_DOCUMENT_FRAG = "MANAGE_FRAG";
     // References to Nav Menu Fragments
     GoogleMapsFragment mGoogleMapsFragment;
     SettingsFragment mSettingsFragment;
@@ -54,7 +59,9 @@ public class MainActivity extends AppCompatActivity
             } else {
                 toggle.setDrawerIndicatorEnabled(true);
                 toggle.setHomeAsUpIndicator(R.drawable.ic_menu_black_24dp);
+                toolbar.setOverflowIcon(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_baseline_filter_list_24px));
                 toggle.setToolbarNavigationClickListener(null);
+                mGoogleMapsFragment.setUserVisibleHint(true);
             }
         }
     };
@@ -74,6 +81,8 @@ public class MainActivity extends AppCompatActivity
     private Toolbar toolbar;
     private NavigationView nvDrawer;
     ActionBarDrawerToggle toggle;
+
+    JsonObject json;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,10 +113,9 @@ public class MainActivity extends AppCompatActivity
         currentFragment = mGoogleMapsFragment;
         toolbar.setOverflowIcon(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_baseline_filter_list_24px));
 
-        //Create Network Fragments
-        mNetworkFragmentGET = NetworkFragment.getInstance(getSupportFragmentManager(), NetworkFragment.URL_GET);
-        mNetworkFragmentPOST = NetworkFragment.getInstance(getSupportFragmentManager(), NetworkFragment.URL_POST);
-        mNetworkFragment = NetworkFragment.getInstance(getSupportFragmentManager(), NetworkFragment.URL_POST);
+        json = new JsonObject();
+        json.addProperty("name", "printer1");
+        Log.i("JSON", json.toString());
     }
 
     @Override
@@ -124,6 +132,7 @@ public class MainActivity extends AppCompatActivity
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         toolbar.setBackground(null);
+        getMenuInflater().inflate(R.menu.filter_view, menu);
         return true;
     }
 
@@ -139,15 +148,17 @@ public class MainActivity extends AppCompatActivity
         item.setChecked(false);
         int id = item.getItemId();
         Fragment newFragment;
+        mGoogleMapsFragment.setUserVisibleHint(false);
         switch (id) {
             case R.id.nav_drawer_Settings: {
                 if (!item.isChecked()) {
                     newFragment = new SettingsFragment();
-                    if (currentFragment == mGoogleMapsFragment) {
-                        fm.beginTransaction().detach(mGoogleMapsFragment).commit();
-                    }
-                    fm.beginTransaction().detach(mGoogleMapsFragment).replace(R.id.flContent, newFragment, TAG_SETTINGS_FRAG).addToBackStack(null).commit();
-
+                    fm.beginTransaction()
+                            .setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right, R.anim.slide_in_left, R.anim.slide_out_right)
+                            .hide(mGoogleMapsFragment)
+                            .add(R.id.flContent, newFragment, TAG_SETTINGS_FRAG)
+                            .addToBackStack(null)
+                            .commit();
                     toolbar.setOverflowIcon(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_baseline_more_vert_24px));
                     item.setChecked(true);
                     currentFragment = newFragment;
@@ -157,16 +168,28 @@ public class MainActivity extends AppCompatActivity
             case R.id.nav_drawer_MainMenu: {
                 if (!item.isChecked()) {
                     newFragment = new MainMenu();
-                    if (currentFragment == mGoogleMapsFragment) {
-                        fm.beginTransaction().detach(mGoogleMapsFragment).commit();
-                    }
                     fm.beginTransaction()
                             .setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right, R.anim.slide_in_left, R.anim.slide_out_right)
-                            .detach(mGoogleMapsFragment)
-                            .replace(R.id.flContent, newFragment, TAG_MAIN_MENU_FRAG)
+                            .hide(mGoogleMapsFragment)
+                            .add(R.id.flContent, newFragment, TAG_MAIN_MENU_FRAG)
                             .addToBackStack(null)
                             .commit();
+                    toolbar.setOverflowIcon(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_baseline_more_vert_24px));
+                    item.setChecked(true);
+                    currentFragment = newFragment;
+                }
+                break;
+            }
 
+            case R.id.nav_drawer_SendDocument: {
+                if (!item.isChecked()) {
+                    newFragment = new ManageDocument();
+                    fm.beginTransaction()
+                            .setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right, R.anim.slide_in_left, R.anim.slide_out_right)
+                            .hide(mGoogleMapsFragment)
+                            .add(R.id.flContent, newFragment, TAG_MANAGE_DOCUMENT_FRAG)
+                            .addToBackStack(null)
+                            .commit();
                     toolbar.setOverflowIcon(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_baseline_more_vert_24px));
                     item.setChecked(true);
                     currentFragment = newFragment;
@@ -188,24 +211,9 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    public void startDownload(int btn) {
-        switch (btn) {
-            case R.id.test_request_button_btn: {
-                if (!mDownloading && mNetworkFragmentGET != null) {
-                    // Execute the async download.
-                    mNetworkFragmentGET.startDownload();
-                    mDownloading = true;
-                }
-                break;
-            }
-            case R.id.test_send_document_button: {
-                if (!mDownloading && mNetworkFragmentPOST != null) {
-                    // Execute the async download.
-                    mNetworkFragmentPOST.startDownload();
-                    mDownloading = true;
-                }
-                break;
-            }
+    public void startDownload() {
+        if (mNetworkFragment != null && !mDownloading) {
+            mNetworkFragment.startDownload();
         }
     }
 
@@ -261,14 +269,26 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onMapsInteraction(Printer printer) {
-        startDownload(R.id.test_request_button_btn);
+        mNetworkFragment = NetworkFragmentBuilder.build(getSupportFragmentManager(), NetworkFragment.URL_PRINT);
+        startDownload();
     }
 
     @Override
     public void onMainMenuInteraction(Integer btn) {
         switch(btn) {
             case R.id.test_send_document_button: {
-                startDownload(btn);
+                //mNetworkFragment = NetworkFragment.getInstance(getSupportFragmentManager(), NetworkFragment.URL_UPLOAD);
+                startDownload();
+            }
+        }
+    }
+
+    @Override
+    public void onManageDocumentInteraction(Integer btn) {
+        switch (btn) {
+            case R.id.upload_document: {
+                mNetworkFragment = NetworkFragmentBuilder.build(getSupportFragmentManager(), NetworkFragment.URL_UPLOAD);
+                startDownload();
             }
         }
     }

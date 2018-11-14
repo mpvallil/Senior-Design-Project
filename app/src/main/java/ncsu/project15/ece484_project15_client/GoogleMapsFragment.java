@@ -1,6 +1,8 @@
 package ncsu.project15.ece484_project15_client;
 
 import android.Manifest;
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -19,6 +21,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.TranslateAnimation;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -39,6 +43,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, View.OnClickListener {
 
@@ -52,10 +58,15 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
     LocationCallback mLocationCallback;
     CameraPosition position;
     boolean followLocation;
-    private GoogleMap.OnInfoWindowClickListener mInfoWindowClickListner;
+    private GoogleMap.OnInfoWindowClickListener mInfoWindowClickListener;
+    private GoogleMap.OnMarkerClickListener mMarkerClickListener;
 
     // Buttons for location
     View myLocationButton;
+    // Values for Translation
+    private final float fromY = 0;
+    private final float toY = -150;
+    private final long DURATION = 200;
     View defaultMyLocationButton;
 
     // Listener for sending events back to MainActivity
@@ -169,6 +180,7 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
         Printer mDesignDayPrinter = new Printer();
         mDesignDayPrinter.setName("Design Day Printer");
         mDesignDayPrinter.setLocation(new LatLng(35.7829, -78.6851));
+        JsonObject json = mDesignDayPrinter.getJsonObject();
 
         mMap.addMarker(new MarkerOptions()
                 .position(mDesignDayPrinter.getLocation())
@@ -176,7 +188,7 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
                 .snippet("Click to Print!"))
                 .setTag(mDesignDayPrinter);
 
-        mInfoWindowClickListner = new GoogleMap.OnInfoWindowClickListener() {
+        mInfoWindowClickListener = new GoogleMap.OnInfoWindowClickListener() {
             @Override
             public void onInfoWindowClick(Marker marker) {
                 Printer printer = (Printer) marker.getTag();
@@ -184,7 +196,27 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
                 Toast.makeText(getContext(), "Printing to: " + printer.getName() + "!", Toast.LENGTH_LONG).show();
             }
         };
-        mMap.setOnInfoWindowClickListener(mInfoWindowClickListner);
+
+        mMarkerClickListener = new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                ObjectAnimator objAnim = ObjectAnimator.ofFloat(myLocationButton, "translationY", 0 , -150);
+                objAnim.setDuration(200);
+                objAnim.start();
+                return false;
+            }
+        };
+        mMap.setOnInfoWindowClickListener(mInfoWindowClickListener);
+        mMap.setOnMarkerClickListener(mMarkerClickListener);
+        mMap.setOnInfoWindowCloseListener(new GoogleMap.OnInfoWindowCloseListener() {
+            @Override
+            public void onInfoWindowClose(Marker marker) {
+                // Do whatever you want to do here...
+                ObjectAnimator objAnim = ObjectAnimator.ofFloat(myLocationButton, "translationY", toY , fromY);
+                objAnim.setDuration(DURATION);
+                objAnim.start();
+            }
+        });
 
         // Check for location permissions
         checkLocationPermissionMethod();
@@ -305,6 +337,19 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
         // Resume Location updates when onResume is called
         if (mMap != null) {
             checkLocationPermission();
+        }
+    }
+
+    @Override
+    public void setUserVisibleHint(boolean visibleHint) {
+        // Resume Location updates when onResume is called
+        if (visibleHint) {
+            if (mMap != null) {
+                checkLocationPermission();
+            }
+        } else {
+            // Remove Location updates when onPause is called
+            mFusedLocationClient.removeLocationUpdates(mLocationCallback);
         }
     }
 

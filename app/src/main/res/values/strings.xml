@@ -2,7 +2,7 @@
     <string name="app_name">ECE484-Project15-client</string>
     // MainMenu strings
     <string name="test_printer_owner_landing">Printer Owner Landing-Test</string>
-    <string name="test_send_document">Send Document-Test</string>
+    <string name="test_send_document">Manage Documents</string>
     <string name="test_map_layout">Map Layout-Test</string>
     <string name="test_login">Login Screen-Test</string>
     <string name="test_MainMenu">Main Menu</string>
@@ -51,4 +51,6 @@
 
     // Google Client Auth
     <string name="server_client_id">21063463146-m0718d4dpff2ku8db3a0kl75ddrrp3lq.apps.googleusercontent.com</string>
+    <string name="open_document">Open Document</string>
+    <string name="upload_document_button">Upload</string>
 </resources>

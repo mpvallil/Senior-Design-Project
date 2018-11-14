@@ -1,9 +1,12 @@
 package ncsu.project15.ece484_project15_client;
 
+import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.provider.OpenableColumns;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -14,10 +17,13 @@ import android.util.JsonReader;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.model.LatLng;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import org.json.JSONObject;
 
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -43,16 +49,36 @@ import javax.net.ssl.HttpsURLConnection;
  * Implementation of headless Fragment that runs an AsyncTask to fetch data from the network.
  */
 public class NetworkFragment extends Fragment {
-    public static final String URL_GET = "https://plink.ink/json";
+    public static final String URL_PRINT = "https://plink.ink/printdoc";
+    public static final String URL_GET = "https://plink.ink/json"; // TODO: Change
     public static final String URL_POST = "https://plink.ink/upload";
+    public static final String URL_UPLOAD = "https://plink.ink/upload";
+    public static final String URL_PRINTER_STATUS = "plink.ink/status"; // TODO: Change
+    public static final String URL_PRINT_JOB_STATUS = "plink.ink"; // TODO: Change
 
     public static final String TAG = "NetworkFragment";
 
     private static final String URL_KEY = "Url Key";
+    private static final String DOCUMENT_KEY = "Document Key";
+    //private static final String CLIENT_TOKEN_KEY = "Client Token Key";
+    private static final String PRINTER_KEY = "Printer Key";
+    private static final String LOCATION_KEY = "Location Key";
+
 
     private DownloadCallback mCallback;
     private DownloadTask mDownloadTask;
+
+    // Variables from arguments
     private String mUrlString;
+    private Printer mPrinter;
+    private Uri mDocumentUri;
+    private LatLng mLocation;
+
+    // Strings for sending HTTP POST
+    String attachmentName = "file";
+    String crlf = "\r\n";
+    String twoHyphens = "--";
+    String boundary =  "*****";
 
     /**
      * Static initializer for NetworkFragment that sets the URL of the host it will be downloading
@@ -64,14 +90,22 @@ public class NetworkFragment extends Fragment {
         args.putString(URL_KEY, url);
         networkFragment.setArguments(args);
         fragmentManager.beginTransaction().add(networkFragment, TAG).commit();
-
+        fragmentManager.executePendingTransactions();
         return networkFragment;
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mUrlString = getArguments().getString(URL_KEY);
+        if (getArguments() != null) {
+            mUrlString = getArguments().getString(URL_KEY);
+            if (getArguments().getParcelable(DOCUMENT_KEY) != null) {
+                mDocumentUri = getArguments().getParcelable(DOCUMENT_KEY);
+            }
+            if (getArguments().getParcelable(LOCATION_KEY) != null) {
+                mLocation = getArguments().getParcelable(LOCATION_KEY);
+            }
+        }
         setRetainInstance(true);
     }
 
@@ -220,7 +254,7 @@ public class NetworkFragment extends Fragment {
      */
     private String downloadUrl(URL url) throws IOException {
         InputStream stream = null;
-        OutputStream os;
+        DataOutputStream os;
         HttpsURLConnection connection = null;
         String result = null;
         try {
@@ -239,30 +273,53 @@ public class NetworkFragment extends Fragment {
                     connection.connect();
                     break;
                 }
-                case URL_POST: {
+                case URL_UPLOAD: {
 
                     connection.setRequestMethod("POST");
                     connection.setRequestProperty("Connection-Type", "Keep-Alive");
-                    connection.setRequestProperty("Content-Type", "application/octet-stream");
-                    connection.setRequestProperty("Content-Disposition", "attachment;filename=\"actb.txt\"");
-                    connection.setDoOutput(true);
+                    connection.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
+                    connection.setRequestProperty("Content-Transfer-Encoding", "multipart/form-data");
+                    //connection.setRequestProperty("Content-Disposition", "form-data; name=\"file\";filename=\"Tickets.pdf\"");
+                    connection.setDoInput(true);
                     connection.connect();
-                    os = connection.getOutputStream();
-                    //String string = "--*****\r\nContent-Disposition: form-data; name=\"Tickets\";filename=\"Tickets.pdf\"\r\n\r\n";
-                    //os.write(string.getBytes());
-                    Printer printer = new Printer();
-                    printer.setName("printer1");
-                    fileToBytes(os);
-                    //string = "\r\n--*****--\r\n";
-                    //os.write(string.getBytes());
+                    os = new DataOutputStream(connection.getOutputStream());
+                    os.writeBytes( twoHyphens + boundary + crlf);
+                    os.writeBytes("Content-Disposition: form-data; name=\"file\";filename=\"Tickets.pdf\""+crlf);
+                    os.writeBytes(crlf);
+                    sendFileToBytes(os);
+                    os.writeBytes(crlf);
+                    os.writeBytes(twoHyphens + boundary + twoHyphens + crlf);
                     os.flush();
                     os.close();
+                    break;
+                }
+                case URL_PRINT: {
+                    connection.setRequestMethod("POST");
+                    connection.setRequestProperty("Connection-Type", "Keep-Alive");
+                    connection.setRequestProperty("Content-Type", "application/pdf;charset=UTF-8");
+                    connection.setRequestProperty("Content-Transfer-Encoding", "binary");
+                    connection.setRequestProperty("Content-Disposition", "attachment;filename=\"actb.txt\"");
+                    connection.setDoInput(true);
+                    connection.connect();
+                    os = new DataOutputStream(connection.getOutputStream());
+                    sendFileToBytes(os);
+                    os.flush();
+                    os.close();
+                    break;
+                }
+                case URL_PRINT_JOB_STATUS: {
+
+                    break;
+                }
+
+                case URL_PRINTER_STATUS: {
+
                     break;
                 }
             }
             mCallback.onProgressUpdate(DownloadCallback.Progress.CONNECT_SUCCESS, 0);
             int responseCode = connection.getResponseCode();
-            if (responseCode != HttpsURLConnection.HTTP_OK) {
+            if (responseCode != HttpsURLConnection.HTTP_OK && responseCode != HttpURLConnection.HTTP_CREATED) {
                 throw new IOException("HTTPs error code: " + responseCode);
             }
             // Retrieve the response body as an InputStream.
@@ -271,14 +328,6 @@ public class NetworkFragment extends Fragment {
             if (stream != null) {
                 // Converts Stream to String with max length of 500.
                 result = readStream(stream, 500);
-                if (url.toString().equals(URL_GET)) {
-                    List<Printer> printList = readJsonStream(result);
-                    ArrayList<String> printerNames = new ArrayList<>();
-                    for (Printer printer : printList) {
-                        printerNames.add(printer.getName());
-                    }
-                    result = printerNames.toString();
-                }
             }
         } finally {
             // Close Stream and disconnect HTTPS connection.
@@ -354,8 +403,8 @@ public class NetworkFragment extends Fragment {
         return printer;
     }
 
-    private void fileToBytes(OutputStream os) {
-        File file = new File("sdcard/Download", "actb.txt");
+    private void sendFileToBytes(OutputStream os) {
+        File file = new File("sdcard/Download", "Tickets.pdf");
         Log.i("fileToByte", file.toString());
         FileInputStream fis = null;
         byte buffer[];
@@ -381,5 +430,47 @@ public class NetworkFragment extends Fragment {
             } catch (IOException ignored) {
             }
         }
+    }
+
+    public String getDocumentName(Uri uri) {
+        // The query, since it only applies to a single document, will only return
+        // one row. There's no need to filter, sort, or select fields, since we want
+        // all fields for one document.
+        String displayName = "no file name";
+        Cursor cursor = getActivity().getContentResolver()
+                .query(uri, null, null, null, null, null);
+
+        try {
+            // moveToFirst() returns false if the cursor has 0 rows.  Very handy for
+            // "if there's anything to look at, look at it" conditionals.
+            if (cursor != null && cursor.moveToFirst()) {
+
+                // Note it's called "Display Name".  This is
+                // provider-specific, and might not necessarily be the file name.
+                displayName = cursor.getString(
+                        cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+                Log.i("ManageDocument", "Display Name: " + displayName);
+                Toast.makeText(getContext(), "File name: " + displayName, Toast.LENGTH_SHORT ).show();
+                int sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE);
+                // If the size is unknown, the value stored is null.  But since an
+                // int can't be null in Java, the behavior is implementation-specific,
+                // which is just a fancy term for "unpredictable".  So as
+                // a rule, check if it's null before assigning to an int.  This will
+                // happen often:  The storage API allows for remote files, whose
+                // size might not be locally known.
+                String size = null;
+                if (!cursor.isNull(sizeIndex)) {
+                    // Technically the column stores an int, but cursor.getString()
+                    // will do the conversion automatically.
+                    size = cursor.getString(sizeIndex);
+                } else {
+                    size = "Unknown";
+                }
+                Log.i("ManageDocument", "Size: " + size);
+            }
+        } finally {
+            cursor.close();
+        }
+        return displayName;
     }
 }

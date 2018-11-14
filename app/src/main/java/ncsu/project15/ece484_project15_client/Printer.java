@@ -13,6 +13,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.io.IOException;
@@ -45,8 +46,8 @@ public class Printer {
         return location;
     }
 
-    public String getJson() {
+    public JsonObject getJsonObject() {
         Gson gson = new Gson();
-        return gson.toJson(this);
+        return new JsonParser().parse(gson.toJson(this)).getAsJsonObject();
     }
 }

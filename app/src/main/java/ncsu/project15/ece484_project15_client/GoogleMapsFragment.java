@@ -156,9 +156,9 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
     public void onMapReady(GoogleMap googleMap) {
         // Get the map once its ready
         mMap = googleMap;
-        // disable default location button
+        // disable default location button, change padding
         mMap.getUiSettings().setMyLocationButtonEnabled(false);
-
+        mMap.setPadding(0, getResources().getDimensionPixelSize(R.dimen.action_bar_maps_size), 0, 0);
         //Set Map Style
         try {
             // Customise map styling via JSON file

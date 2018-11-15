@@ -8,9 +8,7 @@
     android:layout_marginTop="?android:attr/actionBarSize"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:map="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
+    <fragment
         android:id="@+id/google_map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
@@ -27,12 +25,12 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="20dp"
             android:layout_marginBottom="16dp"
-            android:elevation="0dp"
-            android:src="@drawable/ic_round_my_location_24px"
-            android:clickable="true"
+            android:background="@android:color/transparent"
             android:backgroundTint="@color/gray"
             android:backgroundTintMode="src_over"
-            android:background="@android:color/transparent"
+            android:clickable="true"
+            android:elevation="0dp"
+            android:src="@drawable/ic_round_my_location_24px"
             app:borderWidth="0dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

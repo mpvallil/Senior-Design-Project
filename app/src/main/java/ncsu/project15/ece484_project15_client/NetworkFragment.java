@@ -61,7 +61,7 @@ public class NetworkFragment extends Fragment {
     private static final String URL_KEY = "Url Key";
     private static final String DOCUMENT_KEY = "Document Key";
     //private static final String CLIENT_TOKEN_KEY = "Client Token Key";
-    private static final String PRINTER_KEY = "Printer Key";
+    private static final String PRINTER_NAME_KEY = "Printer Name Key";
     private static final String LOCATION_KEY = "Location Key";
 
 
@@ -70,7 +70,7 @@ public class NetworkFragment extends Fragment {
 
     // Variables from arguments
     private String mUrlString;
-    private Printer mPrinter;
+    private String mPrinterName;
     private Uri mDocumentUri;
     private LatLng mLocation;
 
@@ -98,13 +98,10 @@ public class NetworkFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mUrlString = getArguments().getString(URL_KEY);
-            if (getArguments().getParcelable(DOCUMENT_KEY) != null) {
-                mDocumentUri = getArguments().getParcelable(DOCUMENT_KEY);
-            }
-            if (getArguments().getParcelable(LOCATION_KEY) != null) {
-                mLocation = getArguments().getParcelable(LOCATION_KEY);
-            }
+            mUrlString = getArguments().getString(NetworkFragmentBuilder.URL_KEY);
+            mDocumentUri = getArguments().getParcelable(NetworkFragmentBuilder.DOCUMENT_KEY);
+            mLocation = getArguments().getParcelable(NetworkFragmentBuilder.LOCATION_KEY);
+            mPrinterName = getArguments().getString(NetworkFragmentBuilder.PRINTER_NAME_KEY);
         }
         setRetainInstance(true);
     }
@@ -279,12 +276,11 @@ public class NetworkFragment extends Fragment {
                     connection.setRequestProperty("Connection-Type", "Keep-Alive");
                     connection.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
                     connection.setRequestProperty("Content-Transfer-Encoding", "multipart/form-data");
-                    //connection.setRequestProperty("Content-Disposition", "form-data; name=\"file\";filename=\"Tickets.pdf\"");
                     connection.setDoInput(true);
                     connection.connect();
                     os = new DataOutputStream(connection.getOutputStream());
                     os.writeBytes( twoHyphens + boundary + crlf);
-                    os.writeBytes("Content-Disposition: form-data; name=\"file\";filename=\"Tickets.pdf\""+crlf);
+                    os.writeBytes("Content-Disposition: form-data; name="+attachmentName+";filename="+getDocumentName(mDocumentUri)+crlf);
                     os.writeBytes(crlf);
                     sendFileToBytes(os);
                     os.writeBytes(crlf);
@@ -404,12 +400,12 @@ public class NetworkFragment extends Fragment {
     }
 
     private void sendFileToBytes(OutputStream os) {
-        File file = new File("sdcard/Download", "Tickets.pdf");
-        Log.i("fileToByte", file.toString());
-        FileInputStream fis = null;
+        //File file = new File(mDocumentUri.getPath());
+        //Log.i("fileToByte", file.toString());
+        InputStream fis = null;
         byte buffer[];
         try {
-            fis = new FileInputStream(file);
+            fis = getActivity().getContentResolver().openInputStream(mDocumentUri);
 
             buffer = new byte[4096];
             int read = 0;
@@ -450,7 +446,6 @@ public class NetworkFragment extends Fragment {
                 displayName = cursor.getString(
                         cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
                 Log.i("ManageDocument", "Display Name: " + displayName);
-                Toast.makeText(getContext(), "File name: " + displayName, Toast.LENGTH_SHORT ).show();
                 int sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE);
                 // If the size is unknown, the value stored is null.  But since an
                 // int can't be null in Java, the behavior is implementation-specific,

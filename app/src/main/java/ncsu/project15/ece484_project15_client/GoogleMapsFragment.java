@@ -7,6 +7,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
@@ -15,7 +16,9 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -26,6 +29,8 @@ import android.view.animation.TranslateAnimation;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -40,6 +45,7 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -48,6 +54,7 @@ import com.google.gson.JsonObject;
 
 public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, View.OnClickListener {
 
+    private static final String TAG = "GoogleMapsFragment";
     // Maps variables
     private GoogleMap mMap;
     SupportMapFragment mapFragment;
@@ -72,6 +79,8 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
     // Listener for sending events back to MainActivity
     private OnMapsInteractionListener mMapsListener;
 
+    // Find Activity's FragmentManager
+    FragmentManager fragmentManager;
 
 
     public static GoogleMapsFragment newInstance() {
@@ -96,13 +105,14 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
         // Get the default location button
         defaultMyLocationButton = ((View) mView.findViewById(Integer.parseInt("1")).getParent()).findViewById(Integer.parseInt("2"));
 
-
         return mView;
     }
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        // Find the Activity's fragment manager
+        fragmentManager = getActivity().getSupportFragmentManager();
         // Get the MapFragment and get the callback for the map
         mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.google_map);
         if (mapFragment != null) {
@@ -149,6 +159,17 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
         // disable default location button
         mMap.getUiSettings().setMyLocationButtonEnabled(false);
 
+        //Set Map Style
+        try {
+            // Customise map styling via JSON file
+            boolean success = googleMap.setMapStyle( MapStyleOptions.loadRawResourceStyle( getContext(), R.raw.maps_style_json));
+            if (!success) {
+                Log.e(TAG, "Style parsing failed.");
+            }
+        } catch (Resources.NotFoundException e) {
+            Log.e(TAG, "Can't find style. Error: ", e);
+        }
+
         // Set the Location request intervals
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(1000); // one second interval
@@ -160,19 +181,6 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
             @Override
             public void onCameraIdle() {
                 position = mMap.getCameraPosition();
-                if (mLastLocation != null) {
-                    //Draw 20 mile radius circle
-                    CircleOptions circleOptions = new CircleOptions()
-                            .center(position.target)
-                            .radius(500); //20 miles
-                    if (mCurrentLocationCircle != null) {
-                        mCurrentLocationCircle.remove();
-                    }
-                    mCurrentLocationCircle = mMap.addCircle(circleOptions);
-                    followLocation = false;
-                } else {
-                    followLocation = true;
-                }
             }
         });
 
@@ -185,14 +193,15 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
         mMap.addMarker(new MarkerOptions()
                 .position(mDesignDayPrinter.getLocation())
                 .title(mDesignDayPrinter.getName())
-                .snippet("Click to Print!"))
+                .snippet("Click to Print!")
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)))
                 .setTag(mDesignDayPrinter);
 
         mInfoWindowClickListener = new GoogleMap.OnInfoWindowClickListener() {
             @Override
             public void onInfoWindowClick(Marker marker) {
                 Printer printer = (Printer) marker.getTag();
-                mMapsListener.onMapsInteraction(printer);
+                mMapsListener.onMapsInteraction(NetworkFragmentBuilder.build(fragmentManager, NetworkFragment.URL_PRINT, printer.getName()));
                 Toast.makeText(getContext(), "Printing to: " + printer.getName() + "!", Toast.LENGTH_LONG).show();
             }
         };
@@ -346,10 +355,12 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
         if (visibleHint) {
             if (mMap != null) {
                 checkLocationPermission();
+                Log.i("setUserVisible hint", "true");
             }
         } else {
             // Remove Location updates when onPause is called
             mFusedLocationClient.removeLocationUpdates(mLocationCallback);
+            Log.i("setUserVisible hint", "false");
         }
     }
 
@@ -382,6 +393,6 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
      */
     public interface OnMapsInteractionListener {
         // TODO: Update argument type and name
-        void onMapsInteraction(Printer printer);
+        void onMapsInteraction(NetworkFragment networkFragment);
     }
 }

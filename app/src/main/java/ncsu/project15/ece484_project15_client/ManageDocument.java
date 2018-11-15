@@ -6,8 +6,11 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.NetworkOnMainThreadException;
 import android.provider.OpenableColumns;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -46,6 +49,8 @@ public class ManageDocument extends Fragment {
     private Button uploadDocumentButton;
     private Uri contentUri;
 
+    private NetworkFragment documentNetworkFragment;
+
     public ManageDocument() {
         // Required empty public constructor
     }
@@ -75,6 +80,8 @@ public class ManageDocument extends Fragment {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+        Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
+        ((AppCompatActivity)getActivity()).setSupportActionBar(toolbar);
     }
 
     @Override
@@ -93,19 +100,34 @@ public class ManageDocument extends Fragment {
         uploadDocumentButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mListener.onManageDocumentInteraction(v.getId());
+                if (documentNetworkFragment != null) {
+                    mListener.onManageDocumentInteraction(documentNetworkFragment);
+                }
             }
         });
+        Toolbar fragmentToolbar = (Toolbar) v.findViewById(R.id.toolbar);
+        Toolbar activityToolbar = (Toolbar) getActivity().findViewById(R.id.my_toolbar);
+        activityToolbar.setVisibility(View.GONE);
+        ((AppCompatActivity)getActivity()).setSupportActionBar(fragmentToolbar);
+        ((AppCompatActivity)getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        fragmentToolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getActivity().onBackPressed();
+            }
+        });
+        //((AppCompatActivity)getActivity()).getSupportActionBar().hide();
 
         // Inflate the layout for this fragment
 
         return v;
     }
 
+
     // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Integer btn) {
         if (mListener != null) {
-            mListener.onManageDocumentInteraction(btn);
+            //mListener.onManageDocumentInteraction();
         }
     }
 
@@ -138,7 +160,7 @@ public class ManageDocument extends Fragment {
      */
     public interface OnManageDocumentInteractionListener {
         // TODO: Update argument type and name
-        void onManageDocumentInteraction(Integer btn);
+        void onManageDocumentInteraction(NetworkFragment networkFragment);
     }
 
     public void performFileSearch() {
@@ -193,6 +215,7 @@ public class ManageDocument extends Fragment {
                 Log.i("File name", fileName);
                 Toast.makeText(getContext(), "File name: " + fileName, Toast.LENGTH_SHORT ).show();
                 dumpFileMetaData(contentUri);
+                documentNetworkFragment = NetworkFragmentBuilder.build(getActivity().getSupportFragmentManager(), NetworkFragment.URL_UPLOAD, contentUri);
             }
         }
     }

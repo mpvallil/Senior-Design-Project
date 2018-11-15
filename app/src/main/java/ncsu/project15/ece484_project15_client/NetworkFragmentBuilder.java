@@ -13,34 +13,78 @@ import ncsu.project15.ece484_project15_client.Printer;
 
 public class NetworkFragmentBuilder {
 
-    private static final String URL_KEY = "Url Key";
-    private static final String DOCUMENT_KEY = "Document Key";
+    static final String URL_KEY = "Url Key";
+    static final String DOCUMENT_KEY = "Document Key";
     //private static final String CLIENT_TOKEN_KEY = "Client Token Key";
-    private static final String PRINTER_KEY = "Printer Key";
-    private static final String LOCATION_KEY = "Location Key";
+    static final String PRINTER_NAME_KEY = "Printer Name Key";
+    static final String LOCATION_KEY = "Location Key";
+
+    private static final String TAG = "NetworkFragment";
 
     public static NetworkFragment build(FragmentManager fm, String url) {
         NetworkFragment networkFragment = new NetworkFragment();
         Bundle args = new Bundle();
         args.putString(URL_KEY, url);
         networkFragment.setArguments(args);
-        fm.beginTransaction().add(networkFragment,"NetworkFragment").commit();
+        fm.beginTransaction().add(networkFragment,TAG).commit();
         fm.executePendingTransactions();
         return networkFragment;
     }
 
-    public Bundle build(String url, Uri documentUri) {
+    public static NetworkFragment build(FragmentManager fm, String url, Uri documentUri) {
+        NetworkFragment networkFragment = new NetworkFragment();
         Bundle args = new Bundle();
         args.putString(URL_KEY, url);
         args.putParcelable(DOCUMENT_KEY, documentUri);
-        return args;
+        networkFragment.setArguments(args);
+        fm.beginTransaction().add(networkFragment,TAG).commit();
+        fm.executePendingTransactions();
+        return networkFragment;
     }
 
-    public Bundle build(String url, Uri documentUri, LatLng location) {
+    public static NetworkFragment build(FragmentManager fm, String url, Uri documentUri, LatLng location) {
+        NetworkFragment networkFragment = new NetworkFragment();
         Bundle args = new Bundle();
         args.putString(URL_KEY, url);
         args.putParcelable(DOCUMENT_KEY, documentUri);
         args.putParcelable(LOCATION_KEY, location);
-        return args;
+        networkFragment.setArguments(args);
+        fm.beginTransaction().add(networkFragment,TAG).commit();
+        fm.executePendingTransactions();
+        return networkFragment;
+    }
+
+    public static NetworkFragment build(FragmentManager fm, String url, String printerName) {
+        NetworkFragment networkFragment = new NetworkFragment();
+        Bundle args = new Bundle();
+        args.putString(URL_KEY, url);
+        args.putString(PRINTER_NAME_KEY, printerName);
+        networkFragment.setArguments(args);
+        fm.beginTransaction().add(networkFragment,TAG).commit();
+        fm.executePendingTransactions();
+        return networkFragment;
+    }
+
+    public static NetworkFragment build(FragmentManager fm, String url, Uri documentUri, String printerName) {
+        NetworkFragment networkFragment = new NetworkFragment();
+        Bundle args = new Bundle();
+        args.putString(URL_KEY, url);
+        args.putParcelable(DOCUMENT_KEY, documentUri);
+        args.putString(PRINTER_NAME_KEY, printerName);
+        networkFragment.setArguments(args);
+        fm.beginTransaction().add(networkFragment,TAG).commit();
+        fm.executePendingTransactions();
+        return networkFragment;
+    }
+
+    public static NetworkFragment build(FragmentManager fm, String url, LatLng location) {
+        NetworkFragment networkFragment = new NetworkFragment();
+        Bundle args = new Bundle();
+        args.putString(URL_KEY, url);
+        args.putParcelable(LOCATION_KEY, location);
+        networkFragment.setArguments(args);
+        fm.beginTransaction().add(networkFragment,TAG).commit();
+        fm.executePendingTransactions();
+        return networkFragment;
     }
 }

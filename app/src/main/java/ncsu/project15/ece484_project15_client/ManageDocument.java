@@ -80,14 +80,14 @@ public class ManageDocument extends Fragment {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
-        Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
-        ((AppCompatActivity)getActivity()).setSupportActionBar(toolbar);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_manage_document, container, false);
+        setToolbar(v);
+
         openDocumentButton = v.findViewById(R.id.find_document);
         uploadDocumentButton = v.findViewById(R.id.upload_document);
         openDocumentButton.setOnClickListener(new View.OnClickListener() {
@@ -103,17 +103,6 @@ public class ManageDocument extends Fragment {
                 if (documentNetworkFragment != null) {
                     mListener.onManageDocumentInteraction(documentNetworkFragment);
                 }
-            }
-        });
-        Toolbar fragmentToolbar = (Toolbar) v.findViewById(R.id.toolbar);
-        Toolbar activityToolbar = (Toolbar) getActivity().findViewById(R.id.my_toolbar);
-        activityToolbar.setVisibility(View.GONE);
-        ((AppCompatActivity)getActivity()).setSupportActionBar(fragmentToolbar);
-        ((AppCompatActivity)getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        fragmentToolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                getActivity().onBackPressed();
             }
         });
         //((AppCompatActivity)getActivity()).getSupportActionBar().hide();
@@ -148,6 +137,20 @@ public class ManageDocument extends Fragment {
         mListener = null;
     }
 
+    private void setToolbar(View v) {
+        Toolbar fragmentToolbar = (Toolbar) v.findViewById(R.id.toolbar);
+        Toolbar activityToolbar = (Toolbar) getActivity().findViewById(R.id.my_toolbar);
+        activityToolbar.setVisibility(View.GONE);
+        ((AppCompatActivity)getActivity()).setSupportActionBar(fragmentToolbar);
+        ((AppCompatActivity)getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        fragmentToolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getActivity().onBackPressed();
+            }
+        });
+    }
+
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
@@ -177,7 +180,7 @@ public class ManageDocument extends Fragment {
         // If one wanted to search for ogg vorbis files, the type would be "audio/ogg".
         // To search for all documents available via installed storage providers,
         // it would be "*/*".
-        intent.setType("application/pdf");
+        intent.setType("*/*");
 
         startActivityForResult(intent, READ_REQUEST_CODE);
     }

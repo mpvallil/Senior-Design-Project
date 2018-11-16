@@ -1,6 +1,7 @@
 package ncsu.project15.ece484_project15_client;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -25,19 +26,23 @@ import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.Toast;
 import ncsu.project15.ece484_project15_client.NetworkFragmentBuilder;
+import ncsu.project15.ece484_project15_client.dummy.DummyContent;
+
 import com.google.gson.JsonObject;
 
 import java.io.File;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, DownloadCallback<String>, SettingsFragment.OnSettingsInteractionListener,
-                        GoogleMapsFragment.OnMapsInteractionListener, MainMenu.OnMainMenuInteractionListener, ManageDocument.OnManageDocumentInteractionListener {
+                        GoogleMapsFragment.OnMapsInteractionListener, MainMenu.OnMainMenuInteractionListener, ManageDocument.OnManageDocumentInteractionListener,
+                        PrinterOwnerFragment.OnPrinterOwnerFragmentInteractionListener {
     /** Fragment references */
     // Fields for naming Fragments from the Nav Menu
     private static final String TAG_MAIN_MENU_FRAG = "MAIN_MENU_FRAG";
-    public static final String TAG_GOOGLE_MAPS_FRAG = "GOOGLE_MAPS_FRAG";
-    public static final String TAG_SETTINGS_FRAG = "SETTINGS_FRAG";
-    public static final String TAG_MANAGE_DOCUMENT_FRAG = "MANAGE_FRAG";
+    private static final String TAG_GOOGLE_MAPS_FRAG = "GOOGLE_MAPS_FRAG";
+    private static final String TAG_PRINTER_OWNER_FRAGMENT = "PRINTER_OWNER_FRAG";
+    private static final String TAG_SETTINGS_FRAG = "SETTINGS_FRAG";
+    private static final String TAG_MANAGE_DOCUMENT_FRAG = "MANAGE_FRAG";
     // References to Nav Menu Fragments
     GoogleMapsFragment mGoogleMapsFragment;
     SettingsFragment mSettingsFragment;
@@ -59,6 +64,7 @@ public class MainActivity extends AppCompatActivity
                 Log.i("backStackChanged", "no Map");
             } else {
                 setSupportActionBar(toolbar);
+                getSupportActionBar().setDisplayShowTitleEnabled(false);
                 findViewById(R.id.my_toolbar).setVisibility(View.VISIBLE);
                 toggle.setDrawerIndicatorEnabled(true);
                 toggle.setHomeAsUpIndicator(R.drawable.ic_menu_black_24dp);
@@ -110,26 +116,32 @@ public class MainActivity extends AppCompatActivity
                     switch (id) {
                         case R.id.nav_drawer_Settings: {
                             newFragment = new SettingsFragment();
-
                             fm.beginTransaction()
-                                    .setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right, R.anim.slide_in_left, R.anim.slide_out_right)
-                                    .hide(mGoogleMapsFragment)
+                                    .setCustomAnimations(R.animator.slide_up, 0, 0, R.animator.slide_down)
                                     .add(R.id.flContent, newFragment, TAG_SETTINGS_FRAG)
                                     .addToBackStack(null)
                                     .commit();
-                            toolbar.setOverflowIcon(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_baseline_more_vert_24px));
                             currentFragment = newFragment;
                             break;
                         }
                         case R.id.nav_drawer_MainMenu: {
                             newFragment = new MainMenu();
                             fm.beginTransaction()
-                                    .setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right, R.anim.slide_in_left, R.anim.slide_out_right)
-                                    .hide(mGoogleMapsFragment)
+                                    .setCustomAnimations(R.animator.slide_up, 0, 0, R.animator.slide_down)
                                     .add(R.id.flContent, newFragment, TAG_MAIN_MENU_FRAG)
                                     .addToBackStack(null)
                                     .commit();
-                            toolbar.setOverflowIcon(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_baseline_more_vert_24px));
+                            currentFragment = newFragment;
+                            break;
+                        }
+                        case R.id.nav_drawer_PrinterLanding: {
+                            newFragment = new PrinterOwnerFragment();
+                            mGoogleMapsFragment.setUserVisibleHint(false);
+                            fm.beginTransaction()
+                                    .setCustomAnimations(R.animator.slide_up, 0, 0, R.animator.slide_down)
+                                    .add(R.id.flContent, newFragment, TAG_PRINTER_OWNER_FRAGMENT)
+                                    .addToBackStack(null)
+                                    .commit();
                             currentFragment = newFragment;
                             break;
                         }
@@ -140,23 +152,15 @@ public class MainActivity extends AppCompatActivity
                             fm.beginTransaction()
                                     .setCustomAnimations(R.animator.slide_up, 0, 0, R.animator.slide_down)
                                     .add(R.id.flContent, newFragment, TAG_MANAGE_DOCUMENT_FRAG)
-                                    //.hide(mGoogleMapsFragment)
                                     .addToBackStack(null)
                                     .commit();
-                            toolbar.setOverflowIcon(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_baseline_more_vert_24px));
                             currentFragment = newFragment;
                             break;
                         }
                         case R.id.nav_drawer_Logout: {
-
-
-                        }
-                        case 0: {
+                            startActivity(new Intent(MainActivity.this, LoginActivity.class));
+                            finish();
                             break;
-                        }
-                        default: {
-
-                            toolbar.setOverflowIcon(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_baseline_filter_list_24px));
                         }
                     }
                     drawerItem = null;
@@ -213,68 +217,6 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         item.setChecked(false);
         this.drawerItem = item;
-//        int id = item.getItemId();
-//        Fragment newFragment;
-//        mGoogleMapsFragment.setUserVisibleHint(false);
-//        switch (id) {
-//            case R.id.nav_drawer_Settings: {
-//                if (!item.isChecked()) {
-//                    newFragment = new SettingsFragment();
-//
-//                    fm.beginTransaction()
-//                            .setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right, R.anim.slide_in_left, R.anim.slide_out_right)
-//                            .hide(mGoogleMapsFragment)
-//                            .add(R.id.flContent, newFragment, TAG_SETTINGS_FRAG)
-//                            .addToBackStack(null)
-//                            .commit();
-//                    toolbar.setOverflowIcon(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_baseline_more_vert_24px));
-//                    item.setChecked(true);
-//                    currentFragment = newFragment;
-//                }
-//                break;
-//            }
-//            case R.id.nav_drawer_MainMenu: {
-//                if (!item.isChecked()) {
-//                    newFragment = new MainMenu();
-//                    fm.beginTransaction()
-//                            .setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right, R.anim.slide_in_left, R.anim.slide_out_right)
-//                            .hide(mGoogleMapsFragment)
-//                            .add(R.id.flContent, newFragment, TAG_MAIN_MENU_FRAG)
-//                            .addToBackStack(null)
-//                            .commit();
-//                    toolbar.setOverflowIcon(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_baseline_more_vert_24px));
-//                    item.setChecked(true);
-//                    currentFragment = newFragment;
-//                }
-//                break;
-//            }
-//
-//            case R.id.nav_drawer_SendDocument: {
-//                if (!item.isChecked()) {
-//                    newFragment = new ManageDocument();
-//                    mGoogleMapsFragment.setUserVisibleHint(false);
-//                    fm.beginTransaction()
-//                            .setCustomAnimations(R.animator.slide_up, 0, 0, R.animator.slide_down)
-//                            .add(R.id.flContent, newFragment, TAG_MANAGE_DOCUMENT_FRAG)
-//                            //.hide(mGoogleMapsFragment)
-//                            .addToBackStack(null)
-//                            .commit();
-//                    toolbar.setOverflowIcon(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_baseline_more_vert_24px));
-//                    item.setChecked(true);
-//                    currentFragment = newFragment;
-//                }
-//                break;
-//            }
-//            case R.id.nav_drawer_Logout: {
-//
-//
-//            }
-//            default: {
-//
-//                toolbar.setOverflowIcon(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_baseline_filter_list_24px));
-//            }
-//        }
-
         mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawer.closeDrawer(GravityCompat.START);
         return true;
@@ -357,5 +299,10 @@ public class MainActivity extends AppCompatActivity
     public void onManageDocumentInteraction(NetworkFragment documentNetworkFragment) {
         mNetworkFragment = documentNetworkFragment;
         startDownload();
+    }
+
+    @Override
+    public void onPrinterOwnerFragmentInteraction(DummyContent.DummyItem item) {
+
     }
 }

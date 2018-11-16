@@ -64,7 +64,7 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
     private FusedLocationProviderClient mFusedLocationClient;
     LocationCallback mLocationCallback;
     CameraPosition position;
-    boolean followLocation;
+    boolean followLocation = true;
     private GoogleMap.OnInfoWindowClickListener mInfoWindowClickListener;
     private GoogleMap.OnMarkerClickListener mMarkerClickListener;
 
@@ -133,9 +133,8 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
                 for (Location location : locationResult.getLocations()) {
                     Log.i("MapsActivity", "Location: " + location.getLatitude() + " " + location.getLongitude());
                     LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                    if (position != null && followLocation) {
-                        Log.i("MapsActivity", "CameraPosition " + position.target);
-                        mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+                    if (followLocation) {
+                        onClick(myLocationButton);
                     }
                     mLastLocation = location;
                 }
@@ -181,6 +180,13 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
             @Override
             public void onCameraIdle() {
                 position = mMap.getCameraPosition();
+            }
+        });
+
+        mMap.setOnCameraMoveStartedListener(new GoogleMap.OnCameraMoveStartedListener() {
+            @Override
+            public void onCameraMoveStarted(int i) {
+                followLocation = false;
             }
         });
 
@@ -340,14 +346,6 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
         mFusedLocationClient.removeLocationUpdates(mLocationCallback);
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        // Resume Location updates when onResume is called
-        if (mMap != null) {
-            checkLocationPermission();
-        }
-    }
 
     @Override
     public void setUserVisibleHint(boolean visibleHint) {
@@ -356,6 +354,7 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
             if (mMap != null) {
                 checkLocationPermission();
                 Log.i("setUserVisible hint", "true");
+                onClick(myLocationButton);
             }
         } else {
             // Remove Location updates when onPause is called
@@ -375,6 +374,7 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
                         mMap.getUiSettings().setMyLocationButtonEnabled(true);
                         defaultMyLocationButton.callOnClick();
                         mMap.getUiSettings().setMyLocationButtonEnabled(false);
+                        followLocation = true;
                     }
                 }
             }

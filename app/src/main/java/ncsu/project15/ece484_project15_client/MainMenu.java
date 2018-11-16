@@ -54,6 +54,7 @@ public class MainMenu extends Fragment {
                              Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.activity_main_menu, container, false);
+        setToolbar(view);
 
         Button test_maps_button = view.findViewById(R.id.test_map_layout_button);
         Button test_login_button = view.findViewById(R.id.test_login_button);
@@ -84,15 +85,23 @@ public class MainMenu extends Fragment {
                 mCallback.onMainMenuInteraction(R.id.test_send_document_button);
             }
         });
-        setHasOptionsMenu(true);
         return view;
     }
 
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        Toolbar toolbar = getActivity().findViewById(R.id.my_toolbar);
-        toolbar.setBackgroundResource(R.color.colorPrimary);
+    private void setToolbar(View v) {
+        Toolbar fragmentToolbar = (Toolbar) v.findViewById(R.id.toolbar);
+        Toolbar activityToolbar = (Toolbar) getActivity().findViewById(R.id.my_toolbar);
+        activityToolbar.setVisibility(View.GONE);
+        ((AppCompatActivity)getActivity()).setSupportActionBar(fragmentToolbar);
+        ((AppCompatActivity)getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        fragmentToolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getActivity().onBackPressed();
+            }
+        });
     }
+
 
 
     @Override

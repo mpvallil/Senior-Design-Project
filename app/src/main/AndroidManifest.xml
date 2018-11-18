@@ -31,13 +31,22 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".LoginActivity"
-            android:screenOrientation="nosensor" >
+        <activity
+            android:name=".LoginActivity"
+            android:screenOrientation="nosensor">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+
+        <activity android:name=".SplashActivity">
+            <!--<intent-filter>-->
+                <!--<action android:name="android.intent.action.MAIN" />-->
+                <!--<category android:name="android.intent.category.LAUNCHER" />-->
+
+            <!--</intent-filter>-->
+
         </activity>
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
@@ -55,8 +64,8 @@
         <activity
             android:name=".MainActivity"
             android:label="@string/title_activity_main"
-            android:theme="@style/AppTheme"
-            android:screenOrientation="nosensor" />
+            android:screenOrientation="nosensor"
+            android:theme="@style/AppTheme" />
     </application>
 
 </manifest>

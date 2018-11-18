@@ -158,7 +158,7 @@ public class MainActivity extends AppCompatActivity
                             break;
                         }
                         case R.id.nav_drawer_Logout: {
-                            startActivity(new Intent(MainActivity.this, LoginActivity.class));
+                            startActivity(new Intent(MainActivity.this, SplashActivity.class));
                             finish();
                             break;
                         }

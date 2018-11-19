@@ -6,6 +6,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
@@ -24,18 +25,30 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 import ncsu.project15.ece484_project15_client.NetworkFragmentBuilder;
 import ncsu.project15.ece484_project15_client.dummy.DummyContent;
 
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.gson.JsonObject;
+import com.squareup.picasso.Picasso;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URL;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, DownloadCallback<String>, SettingsFragment.OnSettingsInteractionListener,
                         GoogleMapsFragment.OnMapsInteractionListener, MainMenu.OnMainMenuInteractionListener, ManageDocument.OnManageDocumentInteractionListener,
                         PrinterOwnerFragment.OnPrinterOwnerFragmentInteractionListener {
+    //Bundle arguments
+    public static final String KEY_USER_ACCOUNT = "User Account Key";
+    GoogleSignInAccount mGoogleSignInAccount;
+
     /** Fragment references */
     // Fields for naming Fragments from the Nav Menu
     private static final String TAG_MAIN_MENU_FRAG = "MAIN_MENU_FRAG";
@@ -88,6 +101,9 @@ public class MainActivity extends AppCompatActivity
     private DrawerLayout mDrawer;
     private Toolbar toolbar;
     private NavigationView nvDrawer;
+    private ImageView nvDrawerHeaderImage;
+    private TextView nvDrawerHeaderName;
+    private TextView nvDrawerHeaderEmail;
     ActionBarDrawerToggle toggle;
     MenuItem drawerItem;
 
@@ -97,6 +113,9 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        //Get Google User Account
+        Bundle args = getIntent().getExtras();
+        mGoogleSignInAccount = args.getParcelable(KEY_USER_ACCOUNT);
 
         // Set Toolbar
         toolbar = (Toolbar) findViewById(R.id.my_toolbar);
@@ -158,7 +177,7 @@ public class MainActivity extends AppCompatActivity
                             break;
                         }
                         case R.id.nav_drawer_Logout: {
-                            startActivity(new Intent(MainActivity.this, SplashActivity.class));
+                            startActivity(new Intent(MainActivity.this, SplashActivity.class).putExtra(SplashActivity.KEY_SIGN_OUT, mGoogleSignInAccount));
                             finish();
                             break;
                         }
@@ -169,9 +188,14 @@ public class MainActivity extends AppCompatActivity
         };
         mDrawer.addDrawerListener(toggle);
         toggle.syncState();
-
+        // Find Nav Drawer and associated elements
         nvDrawer = (NavigationView) findViewById(R.id.nvView);
         nvDrawer.setNavigationItemSelectedListener(this);
+        View nvDrawerHeader = nvDrawer.getHeaderView(0);
+        nvDrawerHeaderImage = nvDrawerHeader.findViewById(R.id.imageView_user_picture);
+        nvDrawerHeaderName = nvDrawerHeader.findViewById(R.id.texView_user_name);
+        nvDrawerHeaderEmail = nvDrawerHeader.findViewById(R.id.textView_user_email);
+
         fm = getSupportFragmentManager();
         fm.addOnBackStackChangedListener(backStackListener);
 
@@ -186,6 +210,14 @@ public class MainActivity extends AppCompatActivity
         json = new JsonObject();
         json.addProperty("name", "printer1");
         Log.i("JSON", json.toString());
+    }
+
+    @Override
+    public void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        Picasso.get().load(mGoogleSignInAccount.getPhotoUrl()).into(nvDrawerHeaderImage);
+        nvDrawerHeaderName.setText(mGoogleSignInAccount.getDisplayName());
+        nvDrawerHeaderEmail.setText(mGoogleSignInAccount.getEmail());
     }
 
     @Override

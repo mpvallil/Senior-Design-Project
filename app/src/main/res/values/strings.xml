@@ -53,5 +53,6 @@
     <string name="server_client_id">21063463146-m0718d4dpff2ku8db3a0kl75ddrrp3lq.apps.googleusercontent.com</string>
     <string name="open_document">Open Document</string>
     <string name="upload_document_button">Upload</string>
+    <string name="app_tagline">Print Anywhere</string>
 
 </resources>

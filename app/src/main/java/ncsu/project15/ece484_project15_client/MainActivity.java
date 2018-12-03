@@ -67,21 +67,22 @@ public class MainActivity extends AppCompatActivity
         public void onBackStackChanged() {
             if (fm.getBackStackEntryCount() > 0) {
                 toggle.setDrawerIndicatorEnabled(false);
-                toggle.setHomeAsUpIndicator(R.drawable.ic_baseline_arrow_back_24px);
-                toggle.setToolbarNavigationClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        onBackPressed();
-                    }
-                });
+//                toggle.setHomeAsUpIndicator(R.drawable.ic_baseline_arrow_back_24px);
+//                toggle.setToolbarNavigationClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View v) {
+//                        onBackPressed();
+//                    }
+//                });
                 Log.i("backStackChanged", "no Map");
             } else {
                 setSupportActionBar(toolbar);
                 getSupportActionBar().setDisplayShowTitleEnabled(false);
                 findViewById(R.id.my_toolbar).setVisibility(View.VISIBLE);
+                mDrawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
                 toggle.setDrawerIndicatorEnabled(true);
-                toggle.setHomeAsUpIndicator(R.drawable.ic_menu_black_24dp);
-                toolbar.setOverflowIcon(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_baseline_filter_list_24px));
+//                toggle.setHomeAsUpIndicator(R.drawable.ic_menu_black_24dp);
+//                toolbar.setOverflowIcon(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_baseline_filter_list_24px));
                 toggle.setToolbarNavigationClickListener(null);
                 mGoogleMapsFragment.setUserVisibleHint(true);
                 Log.i("backStackChanged", "Map");
@@ -121,11 +122,17 @@ public class MainActivity extends AppCompatActivity
         toolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
+        toolbar.setOverflowIcon(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_baseline_filter_list_24px));
 
         // Find the DrawerLayout
         mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         toggle = new ActionBarDrawerToggle(
                 this, mDrawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
+            @Override
+            public boolean onOptionsItemSelected(MenuItem item) {
+                return super.onOptionsItemSelected(item);
+            }
+
             @Override
             public void onDrawerClosed(View drawerView) {
                 if (drawerItem != null) {
@@ -183,6 +190,7 @@ public class MainActivity extends AppCompatActivity
                         }
                     }
                     drawerItem = null;
+                    mDrawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
                 }
             }
         };
@@ -196,6 +204,13 @@ public class MainActivity extends AppCompatActivity
         nvDrawerHeaderName = nvDrawerHeader.findViewById(R.id.texView_user_name);
         nvDrawerHeaderEmail = nvDrawerHeader.findViewById(R.id.textView_user_email);
 
+        //Set header fields
+        if (mGoogleSignInAccount.getPhotoUrl() != null) {
+            Picasso.get().load(mGoogleSignInAccount.getPhotoUrl()).into(nvDrawerHeaderImage);
+        }
+        nvDrawerHeaderName.setText(mGoogleSignInAccount.getDisplayName());
+        nvDrawerHeaderEmail.setText(mGoogleSignInAccount.getEmail());
+
         fm = getSupportFragmentManager();
         fm.addOnBackStackChangedListener(backStackListener);
 
@@ -205,19 +220,10 @@ public class MainActivity extends AppCompatActivity
                 .add(R.id.flContent, mGoogleMapsFragment, TAG_GOOGLE_MAPS_FRAG)
                 .commit();
         currentFragment = mGoogleMapsFragment;
-        toolbar.setOverflowIcon(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_baseline_filter_list_24px));
 
         json = new JsonObject();
         json.addProperty("name", "printer1");
         Log.i("JSON", json.toString());
-    }
-
-    @Override
-    public void onPostCreate(Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-        Picasso.get().load(mGoogleSignInAccount.getPhotoUrl()).into(nvDrawerHeaderImage);
-        nvDrawerHeaderName.setText(mGoogleSignInAccount.getDisplayName());
-        nvDrawerHeaderEmail.setText(mGoogleSignInAccount.getEmail());
     }
 
     @Override

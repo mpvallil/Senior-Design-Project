@@ -380,6 +380,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private void updateUI(GoogleSignInAccount account) {
         if (account != null) {
             //startActivity(new Intent(LoginActivity.this, MainActivity.class));
+        } else {
+
         }
     }
 }

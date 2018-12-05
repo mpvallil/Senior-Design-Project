@@ -1,5 +1,6 @@
 package ncsu.project15.ece484_project15_client;
 
+import android.app.FragmentManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;

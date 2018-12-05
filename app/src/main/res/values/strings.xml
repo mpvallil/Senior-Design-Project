@@ -54,5 +54,11 @@
     <string name="open_document">Open Document</string>
     <string name="upload_document_button">Upload</string>
     <string name="app_tagline">Print Anywhere</string>
+    <string name="text_color_settings">Color Settings</string>
+    <string name="text_black_and_white">Black and White</string>
+    <string name="text_color">Color</string>
+    <string name="text_active">Printer Active</string>
+    <string name="switch_active_printer_text">Active</string>
+    <string name="text_set_price">Set Price</string>
 
 </resources>

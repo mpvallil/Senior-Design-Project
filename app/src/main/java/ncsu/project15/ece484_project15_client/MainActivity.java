@@ -56,6 +56,7 @@ public class MainActivity extends AppCompatActivity
     private static final String TAG_PRINTER_OWNER_FRAGMENT = "PRINTER_OWNER_FRAG";
     private static final String TAG_SETTINGS_FRAG = "SETTINGS_FRAG";
     private static final String TAG_MANAGE_DOCUMENT_FRAG = "MANAGE_FRAG";
+    private static final String TAG_PRINTER_SETTINGS_FRAGMENT = "PRINTER_SETTINGS_FRAGMENT";
     // References to Nav Menu Fragments
     GoogleMapsFragment mGoogleMapsFragment;
     SettingsFragment mSettingsFragment;
@@ -341,6 +342,12 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onPrinterOwnerFragmentInteraction(DummyContent.DummyItem item) {
-
+        if(fm.findFragmentByTag(TAG_PRINTER_OWNER_FRAGMENT).isVisible()) {
+            fm.beginTransaction()
+                    .setCustomAnimations(R.animator.slide_up, R.animator.slide_down, R.animator.slide_up, R.animator.slide_down)
+                    .replace(R.id.flContent, new PrinterSettingsFragment(), TAG_PRINTER_SETTINGS_FRAGMENT)
+                    .addToBackStack(null)
+                    .commit();
+        }
     }
 }

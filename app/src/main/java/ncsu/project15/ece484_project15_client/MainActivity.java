@@ -44,7 +44,7 @@ import java.net.URL;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, DownloadCallback<String>, SettingsFragment.OnSettingsInteractionListener,
                         GoogleMapsFragment.OnMapsInteractionListener, MainMenu.OnMainMenuInteractionListener, ManageDocument.OnManageDocumentInteractionListener,
-                        PrinterOwnerFragment.OnPrinterOwnerFragmentInteractionListener {
+                        PrinterOwnerFragment.OnPrinterOwnerFragmentInteractionListener, PrinterDisplayFragment.OnPrinterDisplayInteractionListener {
     //Bundle arguments
     public static final String KEY_USER_ACCOUNT = "User Account Key";
     GoogleSignInAccount mGoogleSignInAccount;
@@ -57,6 +57,7 @@ public class MainActivity extends AppCompatActivity
     private static final String TAG_SETTINGS_FRAG = "SETTINGS_FRAG";
     private static final String TAG_MANAGE_DOCUMENT_FRAG = "MANAGE_FRAG";
     private static final String TAG_PRINTER_SETTINGS_FRAGMENT = "PRINTER_SETTINGS_FRAGMENT";
+    private static final String TAG_PRINTER_DISPLAY_FRAG = "PRINTER_DISPLAY_FRAG";
     // References to Nav Menu Fragments
     GoogleMapsFragment mGoogleMapsFragment;
     SettingsFragment mSettingsFragment;
@@ -270,7 +271,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void updateFromDownload(String result) {
-        Toast.makeText(getApplicationContext(), result, Toast.LENGTH_LONG).show();
+        //Toast.makeText(getApplicationContext(), result, Toast.LENGTH_LONG).show();
 
     }
 
@@ -319,8 +320,16 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onMapsInteraction(NetworkFragment mapsNetworkFragment) {
-        mNetworkFragment = mapsNetworkFragment;
+    public void onMapsInteraction(Printer printer) {
+        PrinterDisplayFragment mPrinterDisplayFragment = new PrinterDisplayFragment();
+        mPrinterDisplayFragment.setPrinter(printer);
+        fm.beginTransaction()
+                .setCustomAnimations(R.animator.slide_up, 0, 0, R.animator.slide_down)
+                .add(R.id.flContent, mPrinterDisplayFragment, TAG_PRINTER_DISPLAY_FRAG)
+                .addToBackStack(null)
+                .commit();
+        //NetworkFragmentBuilder.build(fm, NetworkFragment.URL_PRINT, printer.getName());
+        //mNetworkFragment = mapsNetworkFragment;
         startDownload();
     }
 
@@ -349,5 +358,11 @@ public class MainActivity extends AppCompatActivity
                     .addToBackStack(null)
                     .commit();
         }
+    }
+
+    @Override
+    public void onPrinterDisplayInteraction(NetworkFragment printerNetworkFragment) {
+        mNetworkFragment = printerNetworkFragment;
+        startDownload();
     }
 }

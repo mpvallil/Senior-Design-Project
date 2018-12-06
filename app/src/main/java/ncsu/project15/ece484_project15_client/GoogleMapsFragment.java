@@ -180,15 +180,17 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
         });
 
         // Set up initial Design Day Printer Object
-        Printer mDesignDayPrinter = new Printer();
-        mDesignDayPrinter.setName("Design Day Printer");
-        mDesignDayPrinter.setLocation(new LatLng(35.7829, -78.6851));
+        Printer mDesignDayPrinter = new Printer()
+                .setName("Design Day Printer")
+                .setLocation(new LatLng(35.7829, -78.6851))
+                .setPrinterType("Dell 2330dn")
+                .setStatus("Ready");
         JsonObject json = mDesignDayPrinter.getJsonObject();
 
         mMap.addMarker(new MarkerOptions()
                 .position(mDesignDayPrinter.getLocation())
                 .title(mDesignDayPrinter.getName())
-                .snippet("Click to Print!")
+                .snippet("Click for more info!")
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)))
                 .setTag(mDesignDayPrinter);
 
@@ -196,8 +198,7 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
             @Override
             public void onInfoWindowClick(Marker marker) {
                 Printer printer = (Printer) marker.getTag();
-                mMapsListener.onMapsInteraction(NetworkFragmentBuilder.build(fragmentManager, NetworkFragment.URL_PRINT, printer.getName()));
-                Toast.makeText(getContext(), "Printing to: " + printer.getName() + "!", Toast.LENGTH_LONG).show();
+                mMapsListener.onMapsInteraction(printer);
             }
         };
 
@@ -343,7 +344,6 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
             if (mMap != null) {
                 checkLocationPermission();
                 Log.i("setUserVisible hint", "true");
-                onClick(myLocationButton);
             }
         } else {
             // Remove Location updates when onPause is called
@@ -382,6 +382,6 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
      */
     public interface OnMapsInteractionListener {
         // TODO: Update argument type and name
-        void onMapsInteraction(NetworkFragment networkFragment);
+        void onMapsInteraction(Printer printer);
     }
 }

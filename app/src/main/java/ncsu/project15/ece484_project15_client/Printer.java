@@ -25,29 +25,50 @@ import java.util.List;
 // Printer objects that will be received by server and updated on the map
 public class Printer {
     private String name;
+    private String printerType;
+    private String status;
     private LatLng location;
 
     Printer() {}
 
-    public void setName(String name) {
+    public Printer setName(String name) {
         this.name = name;
+        return this;
     }
 
     public String getName() {
-
-        return name;
+        return this.name;
     }
 
-    void setLocation(LatLng location) {
+    Printer setLocation(LatLng location) {
         this.location = location;
+        return this;
     }
 
     LatLng getLocation() {
-        return location;
+        return this.location;
     }
 
-    public JsonObject getJsonObject() {
+    JsonObject getJsonObject() {
         Gson gson = new Gson();
         return new JsonParser().parse(gson.toJson(this)).getAsJsonObject();
+    }
+
+    Printer setPrinterType(String type) {
+        this.printerType = type;
+        return this;
+    }
+
+    String getPrinterType() {
+        return this.printerType;
+    }
+
+    Printer setStatus(String status) {
+        this.status = status;
+        return this;
+    }
+
+    String getStatus() {
+        return this.status;
     }
 }

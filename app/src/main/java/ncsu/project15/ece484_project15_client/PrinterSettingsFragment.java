@@ -1,6 +1,7 @@
 package ncsu.project15.ece484_project15_client;
 
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
@@ -8,6 +9,9 @@ import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
+import android.widget.Toast;
 
 
 /**
@@ -62,8 +66,47 @@ public class PrinterSettingsFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_printer_settings, container, false);
+        //Set the toolbar
         setToolbar(v);
+        //Hide Keyboard after changing price
+        hideKeyboard(v);
+        //Set Buttons in View
+        setButtons(v);
         return v;
+    }
+
+    private void setButtons(View v) {
+       Button buttonSaveChanges =  v.findViewById(R.id.button_save_changes);
+       buttonSaveChanges.setOnClickListener(new View.OnClickListener() {
+           @Override
+           public void onClick(View v) {
+               Toast.makeText(getContext(), "Changes Saved", Toast.LENGTH_SHORT).show();
+               getFragmentManager().popBackStack();
+           }
+       });
+    }
+
+    private void hideKeyboard(View v) {
+        v.findViewById(R.id.frameLayout_printer_settings).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                InputMethodManager imm = (InputMethodManager) view.getContext()
+                        .getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+            }
+        });
+        v.findViewById(R.id.editText2).setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (!hasFocus) {
+                    InputMethodManager imm = (InputMethodManager) v.getContext()
+                            .getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                } else {
+                }
+            }
+        });
+
     }
 
     private void setToolbar(View v) {
@@ -80,5 +123,4 @@ public class PrinterSettingsFragment extends Fragment {
             }
         });
     }
-
 }

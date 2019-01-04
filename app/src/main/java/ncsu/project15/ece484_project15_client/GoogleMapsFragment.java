@@ -41,6 +41,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.gson.JsonObject;
 
+import java.util.Random;
+
 public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, View.OnClickListener {
 
     private static final String TAG = "GoogleMapsFragment";
@@ -180,25 +182,16 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
         });
 
         // Set up initial Design Day Printer Object
-        Printer mDesignDayPrinter = new Printer()
-                .setName("Design Day Printer")
-                .setLocation(new LatLng(35.7829, -78.6851))
-                .setPrinterType("Dell 2330dn")
-                .setStatus("Ready");
-        JsonObject json = mDesignDayPrinter.getJsonObject();
-
-        mMap.addMarker(new MarkerOptions()
-                .position(mDesignDayPrinter.getLocation())
-                .title(mDesignDayPrinter.getName())
-                .snippet("Click for more info!")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)))
-                .setTag(mDesignDayPrinter);
+        boolean isPrinterOwner = true;
+        createTestPrinters(isPrinterOwner);
 
         mInfoWindowClickListener = new GoogleMap.OnInfoWindowClickListener() {
             @Override
             public void onInfoWindowClick(Marker marker) {
-                Printer printer = (Printer) marker.getTag();
-                mMapsListener.onMapsInteraction(printer);
+                if (marker.getTag() != null) {
+                    Printer printer = (Printer) marker.getTag();
+                    mMapsListener.onMapsInteraction(printer);
+                }
             }
         };
 
@@ -226,6 +219,37 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
         // Check for location permissions
         checkLocationPermissionMethod();
 
+    }
+
+    private void createTestPrinters(boolean isPrinterOwner) {
+        for (int i = 0; i < 6; i++) {
+            Printer testPrinter = new Printer()
+                    .setName("Test Printer")
+                    .setLocation(new LatLng(35.7829 - (Math.random()*.01), -78.6851 + (Math.random()*.01)))
+                    .setPrinterType("Dell 2330dn")
+                    .setStatus("Ready");
+            mMap.addMarker(new MarkerOptions()
+                        .position(testPrinter.getLocation())
+                        .title(testPrinter.getName())
+                        .snippet("Click for more info!")
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)))
+                    .setTag(testPrinter);
+        }
+        if (isPrinterOwner) {
+            Printer mDesignDayPrinter = new Printer()
+                    .setName("Design Day Printer (Your Printer)")
+                    .setLocation(new LatLng(35.7829, -78.6851))
+                    .setPrinterType("Dell 2330dn")
+                    .setStatus("Ready");
+            JsonObject json = mDesignDayPrinter.getJsonObject();
+
+            mMap.addMarker(new MarkerOptions()
+                        .position(mDesignDayPrinter.getLocation())
+                        .title(mDesignDayPrinter.getName())
+                        .snippet("Click to Edit")
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)))
+                    .setTag(mDesignDayPrinter);
+        }
     }
 
     public void checkLocationPermissionMethod() {

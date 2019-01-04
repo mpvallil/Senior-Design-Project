@@ -29,6 +29,11 @@ import android.widget.Toast;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import ncsu.project15.ece484_project15_client.custom.MultiSelectionSpinner;
 
 
 /**
@@ -45,7 +50,7 @@ public class PrinterDisplayFragment extends Fragment {
     private OnPrinterDisplayInteractionListener mListener;
 
     // Request code for getting files off device
-    private static final int READ_REQUEST_CODE = 42;
+    private static final int READ_REQUEST_CODE = 45;
 
     //Printer Used
     private Printer printer;
@@ -109,7 +114,6 @@ public class PrinterDisplayFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = null;
-        setHasOptionsMenu(true);
         if (printer != null) {
             v = inflater.inflate(R.layout.fragment_printer_display, container, false);
             //Set the toolbar
@@ -125,6 +129,7 @@ public class PrinterDisplayFragment extends Fragment {
         TextView printerTypeText = v.findViewById(R.id.textView_printer_type);
         TextView printerStatusText = v.findViewById(R.id.textView_printer_status);
         Button chooseDocumentButton = v.findViewById(R.id.button_choose_document);
+
         documentNameText = v.findViewById(R.id.textView_document_name);
         printButton = v.findViewById(R.id.button_print);
 
@@ -154,6 +159,8 @@ public class PrinterDisplayFragment extends Fragment {
                     documentNameText.setText(getString(R.string.text_no_document));
                     enablePrintButton(false);
                     getActivity().getSupportFragmentManager().popBackStack();
+                    contentUri = null;
+                    
                 }
             }
         });
@@ -166,12 +173,14 @@ public class PrinterDisplayFragment extends Fragment {
     }
 
     private void setToolbar(View v) {
+        setHasOptionsMenu(true);
         Toolbar fragmentToolbar = (Toolbar) v.findViewById(R.id.toolbar);
         Toolbar activityToolbar = (Toolbar) getActivity().findViewById(R.id.my_toolbar);
         activityToolbar.setVisibility(View.GONE);
         thisToolbar = fragmentToolbar;
         ((AppCompatActivity)getActivity()).setSupportActionBar(fragmentToolbar);
         ((AppCompatActivity)getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        fragmentToolbar.setTitle(R.string.title_printer_display);
         fragmentToolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -200,7 +209,7 @@ public class PrinterDisplayFragment extends Fragment {
         // If one wanted to search for ogg vorbis files, the type would be "audio/ogg".
         // To search for all documents available via installed storage providers,
         // it would be "*/*".
-        intent.setType("*/*");
+        intent.setType("application/pdf");
         startActivityForResult(intent, READ_REQUEST_CODE);
     }
 

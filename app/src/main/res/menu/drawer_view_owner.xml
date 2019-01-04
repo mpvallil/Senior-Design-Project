@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:title="@string/nav_menu_General">
+        <menu>
+            <group android:id="@+id/group_nav">
+                <!--<item-->
+                <!--android:id="@+id/nav_drawer_MainMenu"-->
+                <!--android:title="@string/test_MainMenu"-->
+                <!--android:checkable="false" />-->
+                <item
+                    android:id="@+id/nav_drawer_SendDocument"
+                    android:checkable="false"
+                    android:icon="@drawable/ic_baseline_cloud_upload_24px"
+                    android:title="@string/test_send_document" />
+                <item
+                    android:id="@+id/nav_drawer_Settings"
+                    android:checkable="false"
+                    android:icon="@drawable/ic_baseline_settings_20px"
+                    android:title="@string/nav_drawer_Settings" />
+                <item
+                    android:id="@+id/nav_drawer_About"
+                    android:checkable="false"
+                    android:enabled="false"
+                    android:icon="@drawable/ic_baseline_info_24px"
+                    android:title="@string/nav_drawer_About" />
+                <item
+                    android:id="@+id/nav_drawer_Logout"
+                    android:checkable="false"
+                    android:icon="@drawable/ic_baseline_close_24px"
+                    android:title="@string/nav_drawer_Logout" />
+            </group>
+        </menu>
+    </item>
+    <item android:title="@string/title_printer_owner_menu">
+        <menu>
+            <group>
+                <item
+                    android:id="@+id/nav_drawer_PrinterLanding"
+                    android:checkable="false"
+                    android:icon="@drawable/ic_baseline_print_24px"
+                    android:title="@string/nav_drawer_Owner_manage" />
+                <item
+                    android:id="@+id/nav_drawer_Printer_Overview"
+                    android:checkable="false"
+                    android:icon="@drawable/ic_baseline_monetization_on_24px"
+                    android:title="@string/nav_drawer_owner_overview" />
+            </group>
+        </menu>
+    </item>
+    <group>
+    </group>
+</menu>

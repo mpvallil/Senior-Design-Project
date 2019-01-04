@@ -7,6 +7,8 @@ import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
@@ -75,6 +77,12 @@ public class PrinterSettingsFragment extends Fragment {
         return v;
     }
 
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        menu.clear();
+        inflater.inflate(R.menu.toolbar_menu_printer_display, menu);
+    }
+
     private void setButtons(View v) {
        Button buttonSaveChanges =  v.findViewById(R.id.button_save_changes);
        buttonSaveChanges.setOnClickListener(new View.OnClickListener() {
@@ -110,12 +118,14 @@ public class PrinterSettingsFragment extends Fragment {
     }
 
     private void setToolbar(View v) {
+        setHasOptionsMenu(true);
         Toolbar fragmentToolbar = (Toolbar) v.findViewById(R.id.toolbar);
         Toolbar activityToolbar = (Toolbar) getActivity().findViewById(R.id.my_toolbar);
         activityToolbar.setVisibility(View.GONE);
         ((AppCompatActivity)getActivity()).setSupportActionBar(fragmentToolbar);
         ((AppCompatActivity)getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         fragmentToolbar.setOverflowIcon(getContext().getDrawable(R.drawable.ic_baseline_edit_24px));
+        fragmentToolbar.setTitle(R.string.title_printer_settings);
         fragmentToolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

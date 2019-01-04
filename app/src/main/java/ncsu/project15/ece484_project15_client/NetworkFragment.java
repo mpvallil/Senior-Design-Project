@@ -239,6 +239,7 @@ public class NetworkFragment extends Fragment {
          */
         @Override
         protected void onCancelled(Result result) {
+            
         }
 
 

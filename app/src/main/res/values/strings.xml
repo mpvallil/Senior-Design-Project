@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Plink</string>
+    <string name="app_name">plink</string>
     // MainMenu strings
     <string name="test_printer_owner_landing">Printer Owner Landing-Test</string>
     <string name="test_send_document">Manage Documents</string>
@@ -42,7 +42,7 @@
     <string name="nav_header_subtitle">android.studio@android.com</string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="nav_drawer_Map">Find a Printer</string>
-    <string name="nav_drawer_Owner">Add/Manage Printer</string>
+    <string name="nav_drawer_Owner">Register a Printer</string>
     <string name="nav_drawer_Logout">Log out</string>
 
     <!-- TODO: Remove or change this placeholder text -->
@@ -68,9 +68,25 @@
     <string name="text_print_button">PRINT</string>
     <string name="text_no_document">No Document Selected</string>
     <string name="toolbar_refresh">Refresh</string>
+    <string name="nav_drawer_About">About</string>
+    <string name="toolbar_edit">Edit</string>
+    <string name="title_printer_owner_menu">Printer Owner</string>
+    <string name="select_printer_price">Price</string>
+    <string name="nav_menu_General">General</string>
+    <string name="nav_drawer_owner_overview">See Your Earnings</string>
+    <string name="nav_drawer_Owner_manage">Add/Manage Printer</string>
+    <string name="select_printer_paper">Select Paper Available</string>
+    <string name="select_paper_size_8_11">8.5 x 11</string>
+    <string name="select_paper_size_11_17">11 x 17</string>
+    <string name="title_printer_settings">Manage Printer</string>
+    <string name="title_printer_display" />
     <string-array name="array_colors">
         <item name="text_black_and_white">Black and White</item>
         <item name="text_color">Color</item>
+    </string-array>
+    <string-array name="array_paper_size">
+        <item name="select_paper_size_8_11">8.5 x 11</item>
+        <item name="select_paper_size_11_17">11 x 17</item>
     </string-array>
 
 </resources>

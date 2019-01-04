@@ -84,6 +84,7 @@ public class SettingsFragment extends Fragment {
         activityToolbar.setVisibility(View.GONE);
         ((AppCompatActivity)getActivity()).setSupportActionBar(fragmentToolbar);
         ((AppCompatActivity)getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        fragmentToolbar.setTitle(R.string.nav_drawer_Settings);
         fragmentToolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

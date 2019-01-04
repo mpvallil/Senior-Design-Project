@@ -6,4 +6,5 @@
     <color name="colorDarkPurple">#7D4DD4</color>
     <color name="colorLightPurple">#AF96D7</color>
     <color name="colorPurpleAccent">#000000</color>
+    <color name="colorPurpleWhite">#FFFFFF</color>
 </resources>

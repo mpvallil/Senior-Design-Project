@@ -5,8 +5,8 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <item
-        android:id="@+id/action_filter"
-        android:title="@string/toolbar_refresh"
+        android:id="@+id/action_refresh"
+        android:title="@string/toolbar_edit"
         app:showAsAction="always"
-        android:icon="@drawable/ic_baseline_filter_list_24px"/>
+        android:icon="@drawable/ic_baseline_edit_24px"/>
 </menu>

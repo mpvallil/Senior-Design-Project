@@ -16,6 +16,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
@@ -51,6 +52,7 @@ public class ManageDocument extends Fragment {
 
     private NetworkFragment documentNetworkFragment;
 
+    private TextView documentTitle;
     public ManageDocument() {
         // Required empty public constructor
     }
@@ -96,12 +98,15 @@ public class ManageDocument extends Fragment {
                 performFileSearch();
             }
         });
+        documentTitle = v.findViewById(R.id.document_title);
 
         uploadDocumentButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (documentNetworkFragment != null) {
                     mListener.onManageDocumentInteraction(documentNetworkFragment);
+                    Toast.makeText(getContext(), "You uploaded: " + documentTitle.getText(), Toast.LENGTH_SHORT ).show();
+                    documentTitle.setText(R.string.text_no_document);
                 }
             }
         });
@@ -111,7 +116,6 @@ public class ManageDocument extends Fragment {
 
         return v;
     }
-
 
     // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Integer btn) {
@@ -143,6 +147,7 @@ public class ManageDocument extends Fragment {
         activityToolbar.setVisibility(View.GONE);
         ((AppCompatActivity)getActivity()).setSupportActionBar(fragmentToolbar);
         ((AppCompatActivity)getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        fragmentToolbar.setTitle(R.string.test_send_document);
         fragmentToolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -216,8 +221,7 @@ public class ManageDocument extends Fragment {
                 Log.i("Manage Document", filePath);
                 String fileName = filePath.substring(filePath.lastIndexOf(File.separator)+1);
                 Log.i("File name", fileName);
-                Toast.makeText(getContext(), "File name: " + fileName, Toast.LENGTH_SHORT ).show();
-                dumpFileMetaData(contentUri);
+                documentTitle.setText(getDocumentName(contentUri));
                 documentNetworkFragment = NetworkFragmentBuilder.build(getActivity().getSupportFragmentManager(), NetworkFragment.URL_UPLOAD, contentUri);
             }
         }
@@ -240,7 +244,6 @@ public class ManageDocument extends Fragment {
                 String displayName = cursor.getString(
                         cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
                 Log.i("ManageDocument", "Display Name: " + displayName);
-                Toast.makeText(getContext(), "File name: " + displayName, Toast.LENGTH_SHORT ).show();
                 int sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE);
                 // If the size is unknown, the value stored is null.  But since an
                 // int can't be null in Java, the behavior is implementation-specific,

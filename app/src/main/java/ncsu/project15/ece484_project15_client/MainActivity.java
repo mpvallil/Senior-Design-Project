@@ -1,5 +1,6 @@
 package ncsu.project15.ece484_project15_client;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -9,12 +10,16 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.PopupMenu;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -43,8 +48,9 @@ import java.net.URL;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, DownloadCallback<String>, SettingsFragment.OnSettingsInteractionListener,
-                        GoogleMapsFragment.OnMapsInteractionListener, MainMenu.OnMainMenuInteractionListener, ManageDocument.OnManageDocumentInteractionListener,
-                        PrinterOwnerFragment.OnPrinterOwnerFragmentInteractionListener, PrinterDisplayFragment.OnPrinterDisplayInteractionListener {
+                        GoogleMapsFragment.OnMapsInteractionListener, ManageDocument.OnManageDocumentInteractionListener,
+                        PrinterOwnerFragment.OnPrinterOwnerFragmentInteractionListener, PrinterDisplayFragment.OnPrinterDisplayInteractionListener,
+                        PrinterFilterFragment.PrinterFilterFragmentListener {
     //Bundle arguments
     public static final String KEY_USER_ACCOUNT = "User Account Key";
     GoogleSignInAccount mGoogleSignInAccount;
@@ -69,13 +75,6 @@ public class MainActivity extends AppCompatActivity
         public void onBackStackChanged() {
             if (fm.getBackStackEntryCount() > 0) {
                 toggle.setDrawerIndicatorEnabled(false);
-//                toggle.setHomeAsUpIndicator(R.drawable.ic_baseline_arrow_back_24px);
-//                toggle.setToolbarNavigationClickListener(new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View v) {
-//                        onBackPressed();
-//                    }
-//                });
                 Log.i("backStackChanged", "no Map");
             } else {
                 setSupportActionBar(toolbar);
@@ -83,8 +82,6 @@ public class MainActivity extends AppCompatActivity
                 findViewById(R.id.my_toolbar).setVisibility(View.VISIBLE);
                 mDrawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
                 toggle.setDrawerIndicatorEnabled(true);
-//                toggle.setHomeAsUpIndicator(R.drawable.ic_menu_black_24dp);
-//                toolbar.setOverflowIcon(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_baseline_filter_list_24px));
                 toggle.setToolbarNavigationClickListener(null);
                 mGoogleMapsFragment.setUserVisibleHint(true);
                 Log.i("backStackChanged", "Map");
@@ -111,7 +108,6 @@ public class MainActivity extends AppCompatActivity
     MenuItem drawerItem;
 
     JsonObject json;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -120,12 +116,25 @@ public class MainActivity extends AppCompatActivity
         Bundle args = getIntent().getExtras();
         mGoogleSignInAccount = args.getParcelable(KEY_USER_ACCOUNT);
 
-        // Set Toolbar
-        toolbar = (Toolbar) findViewById(R.id.my_toolbar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayShowTitleEnabled(false);
-        toolbar.setOverflowIcon(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_baseline_filter_list_24px));
+        setToolbar();
+        setDrawerLayout();
 
+        fm = getSupportFragmentManager();
+        fm.addOnBackStackChangedListener(backStackListener);
+
+        mGoogleMapsFragment = GoogleMapsFragment.newInstance();
+        fm
+                .beginTransaction()
+                .add(R.id.flContent, mGoogleMapsFragment, TAG_GOOGLE_MAPS_FRAG)
+                .commit();
+        currentFragment = mGoogleMapsFragment;
+
+        json = new JsonObject();
+        json.addProperty("name", "printer1");
+        Log.i("JSON", json.toString());
+    }
+
+    private void setDrawerLayout() {
         // Find the DrawerLayout
         mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         toggle = new ActionBarDrawerToggle(
@@ -145,18 +154,8 @@ public class MainActivity extends AppCompatActivity
                         case R.id.nav_drawer_Settings: {
                             newFragment = new SettingsFragment();
                             fm.beginTransaction()
-                                    .setCustomAnimations(R.animator.slide_up, 0, 0, R.animator.slide_down)
-                                    .add(R.id.flContent, newFragment, TAG_SETTINGS_FRAG)
-                                    .addToBackStack(null)
-                                    .commit();
-                            currentFragment = newFragment;
-                            break;
-                        }
-                        case R.id.nav_drawer_MainMenu: {
-                            newFragment = new MainMenu();
-                            fm.beginTransaction()
-                                    .setCustomAnimations(R.animator.slide_up, 0, 0, R.animator.slide_down)
-                                    .add(R.id.flContent, newFragment, TAG_MAIN_MENU_FRAG)
+                                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                                    .add(R.id.flContent, new SettingsFragment(), TAG_SETTINGS_FRAG)
                                     .addToBackStack(null)
                                     .commit();
                             currentFragment = newFragment;
@@ -166,7 +165,7 @@ public class MainActivity extends AppCompatActivity
                             newFragment = new PrinterOwnerFragment();
                             mGoogleMapsFragment.setUserVisibleHint(false);
                             fm.beginTransaction()
-                                    .setCustomAnimations(R.animator.slide_up, 0, 0, R.animator.slide_down)
+                                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                                     .add(R.id.flContent, newFragment, TAG_PRINTER_OWNER_FRAGMENT)
                                     .addToBackStack(null)
                                     .commit();
@@ -178,7 +177,7 @@ public class MainActivity extends AppCompatActivity
                             newFragment = new ManageDocument();
                             mGoogleMapsFragment.setUserVisibleHint(false);
                             fm.beginTransaction()
-                                    .setCustomAnimations(R.animator.slide_up, 0, 0, R.animator.slide_down)
+                                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                                     .add(R.id.flContent, newFragment, TAG_MANAGE_DOCUMENT_FRAG)
                                     .addToBackStack(null)
                                     .commit();
@@ -212,20 +211,13 @@ public class MainActivity extends AppCompatActivity
         }
         nvDrawerHeaderName.setText(mGoogleSignInAccount.getDisplayName());
         nvDrawerHeaderEmail.setText(mGoogleSignInAccount.getEmail());
+    }
 
-        fm = getSupportFragmentManager();
-        fm.addOnBackStackChangedListener(backStackListener);
-
-        mGoogleMapsFragment = GoogleMapsFragment.newInstance();
-        fm
-                .beginTransaction()
-                .add(R.id.flContent, mGoogleMapsFragment, TAG_GOOGLE_MAPS_FRAG)
-                .commit();
-        currentFragment = mGoogleMapsFragment;
-
-        json = new JsonObject();
-        json.addProperty("name", "printer1");
-        Log.i("JSON", json.toString());
+    private void setToolbar() {
+        // Set Toolbar
+        toolbar = (Toolbar) findViewById(R.id.my_toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
     }
 
     @Override
@@ -248,10 +240,15 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        return toggle.onOptionsItemSelected(item);
+        if (item.getItemId() == R.id.action_filter) {
+            DialogFragment dialogFragment = new PrinterFilterFragment();
+            dialogFragment.show(fm, "filter");
+            return false;
+        } else {
+            return toggle.onOptionsItemSelected(item);
+        }
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
@@ -324,23 +321,11 @@ public class MainActivity extends AppCompatActivity
         PrinterDisplayFragment mPrinterDisplayFragment = new PrinterDisplayFragment();
         mPrinterDisplayFragment.setPrinter(printer);
         fm.beginTransaction()
-                .setCustomAnimations(R.animator.slide_up, 0, 0, R.animator.slide_down)
+                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                 .add(R.id.flContent, mPrinterDisplayFragment, TAG_PRINTER_DISPLAY_FRAG)
                 .addToBackStack(null)
                 .commit();
-        //NetworkFragmentBuilder.build(fm, NetworkFragment.URL_PRINT, printer.getName());
-        //mNetworkFragment = mapsNetworkFragment;
         startDownload();
-    }
-
-    @Override
-    public void onMainMenuInteraction(Integer btn) {
-        switch(btn) {
-            case R.id.test_send_document_button: {
-                //mNetworkFragment = NetworkFragment.getInstance(getSupportFragmentManager(), NetworkFragment.URL_UPLOAD);
-                startDownload();
-            }
-        }
     }
 
     @Override
@@ -353,8 +338,8 @@ public class MainActivity extends AppCompatActivity
     public void onPrinterOwnerFragmentInteraction(DummyContent.DummyItem item) {
         if(fm.findFragmentByTag(TAG_PRINTER_OWNER_FRAGMENT).isVisible()) {
             fm.beginTransaction()
-                    .setCustomAnimations(R.animator.slide_up, R.animator.slide_down, R.animator.slide_up, R.animator.slide_down)
-                    .replace(R.id.flContent, new PrinterSettingsFragment(), TAG_PRINTER_SETTINGS_FRAGMENT)
+                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                    .add(R.id.flContent, new PrinterSettingsFragment(), TAG_PRINTER_SETTINGS_FRAGMENT)
                     .addToBackStack(null)
                     .commit();
         }
@@ -364,5 +349,15 @@ public class MainActivity extends AppCompatActivity
     public void onPrinterDisplayInteraction(NetworkFragment printerNetworkFragment) {
         mNetworkFragment = printerNetworkFragment;
         startDownload();
+    }
+
+    @Override
+    public void onPrinterFilterPositiveClick(DialogFragment dialog) {
+
+    }
+
+    @Override
+    public void onPrinterFilterClearClick(DialogFragment dialog) {
+
     }
 }

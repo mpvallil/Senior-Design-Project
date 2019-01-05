@@ -18,6 +18,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -55,6 +56,7 @@ public class NetworkFragment extends Fragment {
     public static final String URL_UPLOAD = "https://plink.ink/upload";
     public static final String URL_PRINTER_STATUS = "plink.ink/status"; // TODO: Change
     public static final String URL_PRINT_JOB_STATUS = "plink.ink"; // TODO: Change
+    public static final String URL_SIGN_IN_TOKEN = "https://plink.ink/tokensignin";
 
     public static final String TAG = "NetworkFragment";
 
@@ -63,6 +65,7 @@ public class NetworkFragment extends Fragment {
     //private static final String CLIENT_TOKEN_KEY = "Client Token Key";
     private static final String PRINTER_NAME_KEY = "Printer Name Key";
     private static final String LOCATION_KEY = "Location Key";
+    private static final String TOKEN_KEY = "idToken";
 
 
     private DownloadCallback mCallback;
@@ -73,6 +76,7 @@ public class NetworkFragment extends Fragment {
     private String mPrinterName;
     private Uri mDocumentUri;
     private LatLng mLocation;
+    private String mIdToken;
 
     // Strings for sending HTTP POST
     String attachmentName = "file";
@@ -94,14 +98,26 @@ public class NetworkFragment extends Fragment {
         return networkFragment;
     }
 
+    public static NetworkFragment getTokenSigninInstance(FragmentManager fragmentManager, String idToken) {
+        NetworkFragment networkFragment = new NetworkFragment();
+        Bundle args = new Bundle();
+        args.putString(TOKEN_KEY, idToken);
+        args.putString(URL_KEY, URL_SIGN_IN_TOKEN);
+        networkFragment.setArguments(args);
+        fragmentManager.beginTransaction().add(networkFragment, TAG).commit();
+        fragmentManager.executePendingTransactions();
+        return networkFragment;
+    }
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mUrlString = getArguments().getString(NetworkFragmentBuilder.URL_KEY);
+            mUrlString = getArguments().getString(URL_KEY);
             mDocumentUri = getArguments().getParcelable(NetworkFragmentBuilder.DOCUMENT_KEY);
             mLocation = getArguments().getParcelable(NetworkFragmentBuilder.LOCATION_KEY);
             mPrinterName = getArguments().getString(NetworkFragmentBuilder.PRINTER_NAME_KEY);
+            mIdToken = getArguments().getString(TOKEN_KEY);
         }
         setRetainInstance(true);
     }
@@ -189,7 +205,7 @@ public class NetworkFragment extends Fragment {
                         (networkInfo.getType() != ConnectivityManager.TYPE_WIFI
                                 && networkInfo.getType() != ConnectivityManager.TYPE_MOBILE)) {
                     // If no connectivity, cancel task and update Callback with null data.
-                    mCallback.updateFromDownload(null);
+                    mCallback.updateFromDownload("No Network Info");
                     cancel(true);
                 }
             }
@@ -312,6 +328,21 @@ public class NetworkFragment extends Fragment {
                 case URL_PRINTER_STATUS: {
 
                     break;
+                }
+
+                case URL_SIGN_IN_TOKEN: {
+                    String body = TOKEN_KEY + "=" + mIdToken;
+                    connection.setRequestMethod("POST");
+                    connection.setRequestProperty("Connection-Type", "Keep-Alive");
+                    connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+                    connection.setRequestProperty("Content-Transfer-Encoding", "binary");
+                    connection.setRequestProperty("Content-Length", "" + Integer.toString(body.getBytes().length));
+                    connection.setDoInput(true);
+                    connection.connect();
+                    os = new DataOutputStream(connection.getOutputStream());
+                    os.writeBytes(body);
+                    os.flush();
+                    os.close();
                 }
             }
             mCallback.onProgressUpdate(DownloadCallback.Progress.CONNECT_SUCCESS, 0);

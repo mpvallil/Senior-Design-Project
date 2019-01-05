@@ -50,7 +50,8 @@
     <string name="hello_blank_fragment">Hello SettingsFragment</string>
 
     // Google Client Auth
-    <string name="server_client_id">21063463146-m0718d4dpff2ku8db3a0kl75ddrrp3lq.apps.googleusercontent.com</string>
+    <string name="server_client_id">21063463146–563tlraqn4u5sohmvk0rjcmob8d6bvdu.apps.googleusercontent.com</string>
+    <string name="backend_server_id">21063463146-ilb4f9tl0ijq9hakjrhl8s3650kt1hh1.apps.googleusercontent.com</string>
     <string name="open_document">Open Document</string>
     <string name="upload_document_button">Upload</string>
     <string name="app_tagline">Print Anywhere</string>

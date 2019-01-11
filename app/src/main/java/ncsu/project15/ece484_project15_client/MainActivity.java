@@ -37,6 +37,7 @@ import ncsu.project15.ece484_project15_client.NetworkFragmentBuilder;
 import ncsu.project15.ece484_project15_client.dummy.DummyContent;
 
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.gson.JsonObject;
@@ -268,8 +269,15 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void updateFromDownload(String result) {
-        //Toast.makeText(getApplicationContext(), result, Toast.LENGTH_LONG).show();
-
+        String tag = mNetworkFragment.getTag();
+        switch (tag) {
+            case NetworkFragment.URL_GET_LOCAL_PRINTERS: {
+                GoogleMapsFragment frag = (GoogleMapsFragment) fm.findFragmentByTag(TAG_GOOGLE_MAPS_FRAG);
+                if (frag != null) {
+                    frag.getLocalPrinters(result);
+                }
+            }
+        }
     }
 
     @Override
@@ -317,7 +325,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onMapsInteraction(Printer printer) {
+    public void onMapsInteractionSelectPrinter(Printer printer) {
         PrinterDisplayFragment mPrinterDisplayFragment = new PrinterDisplayFragment();
         mPrinterDisplayFragment.setPrinter(printer);
         fm.beginTransaction()
@@ -325,6 +333,11 @@ public class MainActivity extends AppCompatActivity
                 .add(R.id.flContent, mPrinterDisplayFragment, TAG_PRINTER_DISPLAY_FRAG)
                 .addToBackStack(null)
                 .commit();
+    }
+
+    @Override
+    public void onMapsInteractionGetLocalPrinters(LatLng location) {
+        mNetworkFragment = NetworkFragment.getGetLocalPrintersInstance(fm, location);
         startDownload();
     }
 

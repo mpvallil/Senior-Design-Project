@@ -81,6 +81,7 @@
     <string name="select_paper_size_11_17">11 x 17</string>
     <string name="title_printer_settings">Manage Printer</string>
     <string name="title_printer_display" />
+    <string name="switch_offline_printer_text">Offline</string>
     <string-array name="array_colors">
         <item name="text_black_and_white">Black and White</item>
         <item name="text_color">Color</item>

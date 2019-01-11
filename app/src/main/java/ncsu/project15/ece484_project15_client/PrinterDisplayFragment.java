@@ -135,7 +135,11 @@ public class PrinterDisplayFragment extends Fragment {
 
         printerNameText.setText(printer.getName());
         printerTypeText.setText(printer.getPrinterType());
-        printerStatusText.setText(printer.getStatus());
+        if (printer.getStatus()) {
+            printerStatusText.setText(R.string.switch_active_printer_text);
+        } else {
+            printerStatusText.setText(R.string.switch_offline_printer_text);
+        }
         printButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

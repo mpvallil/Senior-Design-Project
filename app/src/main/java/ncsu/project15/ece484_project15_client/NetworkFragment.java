@@ -57,6 +57,7 @@ public class NetworkFragment extends Fragment {
     public static final String URL_PRINTER_STATUS = "plink.ink/status"; // TODO: Change
     public static final String URL_PRINT_JOB_STATUS = "plink.ink"; // TODO: Change
     public static final String URL_SIGN_IN_TOKEN = "https://plink.ink/tokensignin";
+    public static final String URL_GET_LOCAL_PRINTERS = "https://plink.ink/getlocalprinters";
 
     public static final String TAG = "NetworkFragment";
 
@@ -105,6 +106,17 @@ public class NetworkFragment extends Fragment {
         args.putString(URL_KEY, URL_SIGN_IN_TOKEN);
         networkFragment.setArguments(args);
         fragmentManager.beginTransaction().add(networkFragment, TAG).commit();
+        fragmentManager.executePendingTransactions();
+        return networkFragment;
+    }
+
+    public static NetworkFragment getGetLocalPrintersInstance(FragmentManager fragmentManager, LatLng location) {
+        NetworkFragment networkFragment = new NetworkFragment();
+        Bundle args = new Bundle();
+        args.putParcelable(LOCATION_KEY, location);
+        args.putString(URL_KEY, URL_GET_LOCAL_PRINTERS);
+        networkFragment.setArguments(args);
+        fragmentManager.beginTransaction().add(networkFragment, URL_GET_LOCAL_PRINTERS).commit();
         fragmentManager.executePendingTransactions();
         return networkFragment;
     }
@@ -332,6 +344,21 @@ public class NetworkFragment extends Fragment {
 
                 case URL_SIGN_IN_TOKEN: {
                     String body = TOKEN_KEY + "=" + mIdToken;
+                    connection.setRequestMethod("POST");
+                    connection.setRequestProperty("Connection-Type", "Keep-Alive");
+                    connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+                    connection.setRequestProperty("Content-Transfer-Encoding", "binary");
+                    connection.setRequestProperty("Content-Length", "" + Integer.toString(body.getBytes().length));
+                    connection.setDoInput(true);
+                    connection.connect();
+                    os = new DataOutputStream(connection.getOutputStream());
+                    os.writeBytes(body);
+                    os.flush();
+                    os.close();
+                }
+
+                case URL_GET_LOCAL_PRINTERS: {
+                    String body = "lat="+ Double.toString(mLocation.latitude)+"&lng=" + Double.toString(mLocation.longitude);
                     connection.setRequestMethod("POST");
                     connection.setRequestProperty("Connection-Type", "Keep-Alive");
                     connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");

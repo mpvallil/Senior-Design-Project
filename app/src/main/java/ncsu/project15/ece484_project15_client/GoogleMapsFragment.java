@@ -42,7 +42,11 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Random;
 
 public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, View.OnClickListener {
@@ -70,7 +74,7 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
 
     // Variables for getting local printers
     Location getLocalPrintersLastLocation;
-    List<Marker> localPrinterMarkers;
+    ArrayList<Marker> localPrinterMarkers = new ArrayList<Marker>();
 
     // Listener for sending events back to MainActivity
     private OnMapsInteractionListener mMapsListener;
@@ -190,10 +194,6 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
             }
         });
 
-        // Set up initial Design Day Printer Object
-        boolean isPrinterOwner = true;
-        createTestPrinters(isPrinterOwner);
-
         mInfoWindowClickListener = new GoogleMap.OnInfoWindowClickListener() {
             @Override
             public void onInfoWindowClick(Marker marker) {
@@ -243,54 +243,13 @@ public class GoogleMapsFragment extends Fragment implements OnMapReadyCallback, 
     }
 
     private void createPrinterMarker(Printer printer) {
-        boolean setMarker = true;
-        boolean hideMarker = false;
-        for (Marker mark:localPrinterMarkers) {
-            if (mark != null && mark.getTag().equals(printer)) {
-                setMarker = false;
-                Printer currentPrinter = (Printer)mark.getTag();
-            }
-        }
-        if (setMarker) {
-            Marker m = mMap.addMarker(new MarkerOptions()
-                    .position(printer.getLocation())
-                    .title(printer.getName())
-                    .snippet("Click for more info!")
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
-            m.setTag(printer);
-            localPrinterMarkers.add(m);
-        }
-    }
-
-    private void createTestPrinters(boolean isPrinterOwner) {
-//        for (int i = 0; i < 6; i++) {
-//            Printer testPrinter = new Printer()
-//                    .setName("Test Printer")
-//                    .setLocation(new LatLng(35.7829 - (Math.random()*.01), -78.6851 + (Math.random()*.01)))
-//                    .setPrinterType("Dell 2330dn")
-//                    .setStatus("Ready");
-//            mMap.addMarker(new MarkerOptions()
-//                        .position(testPrinter.getLocation())
-//                        .title(testPrinter.getName())
-//                        .snippet("Click for more info!")
-//                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)))
-//                    .setTag(testPrinter);
-//        }
-//        if (isPrinterOwner) {
-//            Printer mDesignDayPrinter = new Printer()
-//                    .setName("Design Day Printer (Your Printer)")
-//                    .setLocation(new LatLng(35.7829, -78.6851))
-//                    .setPrinterType("Dell 2330dn")
-//                    .setStatus("Ready");
-//            JsonObject json = mDesignDayPrinter.getJsonObject();
-//
-//            mMap.addMarker(new MarkerOptions()
-//                        .position(mDesignDayPrinter.getLocation())
-//                        .title(mDesignDayPrinter.getName())
-//                        .snippet("Click to Edit")
-//                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)))
-//                    .setTag(mDesignDayPrinter);
-//        }
+        Marker m = mMap.addMarker(new MarkerOptions()
+                .position(printer.getLocation())
+                .title(printer.getName())
+                .snippet("Click for more info!")
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
+        m.setTag(printer);
+        localPrinterMarkers.add(m);
     }
 
     public void checkLocationPermissionMethod() {

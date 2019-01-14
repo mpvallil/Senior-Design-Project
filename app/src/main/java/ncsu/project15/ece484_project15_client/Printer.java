@@ -151,57 +151,16 @@ public class Printer {
         return this;
     }
 
+    String getJsonAsString() {
+        Gson gson = new Gson();
+        return gson.toJson(this);
+    }
+
     static Printer[] getPrinterList(String printerJSON) {
         Printer[] printers;
         Gson gson = new Gson();
+        //JsonElement json = new JsonParser().parse(printerJSON);
         printers = gson.fromJson(printerJSON, Printer[].class);
-//
-//        try {
-//            printers = readJsonStream(printerJSON);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
         return printers;
-    }
-
-    private static List<Printer> readJsonStream(String in) throws IOException {
-        JsonReader reader = new JsonReader(new StringReader(in));
-        List<Printer> printers;
-        try {
-            printers = readMessagesArray(reader);
-        } finally {
-            reader.close();
-        }
-        return printers;
-    }
-
-    private static List<Printer> readMessagesArray(JsonReader reader) throws IOException {
-        List<Printer> messages = new ArrayList<>();
-
-        reader.beginArray();
-        while (reader.hasNext()) {
-            messages.add(readMessage(reader));
-        }
-        reader.endArray();
-        return messages;
-    }
-
-    private static Printer readMessage(JsonReader reader) throws IOException {
-        String printerName = null;
-        reader.beginObject();
-        while (reader.hasNext()) {
-            String name = reader.nextName();
-            switch (name) {
-            }
-            if (name.equals("name")) {
-                printerName = reader.nextString();
-            } else {
-                reader.skipValue();
-            }
-        }
-        reader.endObject();
-        Printer printer = new Printer();
-        printer.setName(printerName);
-        return printer;
     }
 }

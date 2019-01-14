@@ -274,6 +274,7 @@ public class MainActivity extends AppCompatActivity
             case NetworkFragment.URL_GET_LOCAL_PRINTERS: {
                 GoogleMapsFragment frag = (GoogleMapsFragment) fm.findFragmentByTag(TAG_GOOGLE_MAPS_FRAG);
                 if (frag != null) {
+                    Log.i("Result: ", result);
                     frag.getLocalPrinters(result);
                 }
             }

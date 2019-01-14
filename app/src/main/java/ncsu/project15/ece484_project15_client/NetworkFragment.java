@@ -17,6 +17,7 @@ import android.util.JsonReader;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.google.android.gms.common.util.IOUtils;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -24,6 +25,7 @@ import com.google.gson.JsonParser;
 
 import org.json.JSONObject;
 
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -105,7 +107,7 @@ public class NetworkFragment extends Fragment {
         args.putString(TOKEN_KEY, idToken);
         args.putString(URL_KEY, URL_SIGN_IN_TOKEN);
         networkFragment.setArguments(args);
-        fragmentManager.beginTransaction().add(networkFragment, TAG).commit();
+        fragmentManager.beginTransaction().add(networkFragment, URL_SIGN_IN_TOKEN).commit();
         fragmentManager.executePendingTransactions();
         return networkFragment;
     }
@@ -151,6 +153,7 @@ public class NetworkFragment extends Fragment {
     @Override
     public void onDestroy() {
         // Cancel task when Fragment is destroyed.
+        Log.i("NetworkFrag", "Destroying");
         cancelDownload();
         super.onDestroy();
     }
@@ -280,7 +283,7 @@ public class NetworkFragment extends Fragment {
      */
     private String downloadUrl(URL url) throws IOException {
         InputStream stream = null;
-        DataOutputStream os;
+        DataOutputStream os = null;
         HttpsURLConnection connection = null;
         String result = null;
         try {
@@ -289,100 +292,19 @@ public class NetworkFragment extends Fragment {
             connection.setReadTimeout(3000);
             // Timeout for connection.connect() arbitrarily set to 3000ms.
             connection.setConnectTimeout(3000);
-            // For this use case, set HTTP method to GET.
-
-            Log.i("downloadURL", "arrived at switch");
-            switch(url.toString()) {
-                case URL_GET: {
-                    connection.setRequestMethod("GET");
-                    connection.setDoInput(true);
-                    connection.connect();
-                    break;
-                }
-                case URL_UPLOAD: {
-
-                    connection.setRequestMethod("POST");
-                    connection.setRequestProperty("Connection-Type", "Keep-Alive");
-                    connection.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
-                    connection.setRequestProperty("Content-Transfer-Encoding", "multipart/form-data");
-                    connection.setDoInput(true);
-                    connection.connect();
-                    os = new DataOutputStream(connection.getOutputStream());
-                    os.writeBytes( twoHyphens + boundary + crlf);
-                    os.writeBytes("Content-Disposition: form-data; name="+attachmentName+";filename="+getDocumentName(mDocumentUri)+crlf);
-                    os.writeBytes(crlf);
-                    sendFileToBytes(os);
-                    os.writeBytes(crlf);
-                    os.writeBytes(twoHyphens + boundary + twoHyphens + crlf);
-                    os.flush();
-                    os.close();
-                    break;
-                }
-                case URL_PRINT: {
-                    connection.setRequestMethod("POST");
-                    connection.setRequestProperty("Connection-Type", "Keep-Alive");
-                    connection.setRequestProperty("Content-Type", "application/pdf;charset=UTF-8");
-                    connection.setRequestProperty("Content-Transfer-Encoding", "binary");
-                    connection.setRequestProperty("Content-Disposition", "attachment;filename=\"actb.txt\"");
-                    connection.setDoInput(true);
-                    connection.connect();
-                    os = new DataOutputStream(connection.getOutputStream());
-                    sendFileToBytes(os);
-                    os.flush();
-                    os.close();
-                    break;
-                }
-                case URL_PRINT_JOB_STATUS: {
-
-                    break;
-                }
-
-                case URL_PRINTER_STATUS: {
-
-                    break;
-                }
-
-                case URL_SIGN_IN_TOKEN: {
-                    String body = TOKEN_KEY + "=" + mIdToken;
-                    connection.setRequestMethod("POST");
-                    connection.setRequestProperty("Connection-Type", "Keep-Alive");
-                    connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-                    connection.setRequestProperty("Content-Transfer-Encoding", "binary");
-                    connection.setRequestProperty("Content-Length", "" + Integer.toString(body.getBytes().length));
-                    connection.setDoInput(true);
-                    connection.connect();
-                    os = new DataOutputStream(connection.getOutputStream());
-                    os.writeBytes(body);
-                    os.flush();
-                    os.close();
-                }
-
-                case URL_GET_LOCAL_PRINTERS: {
-                    String body = "lat="+ Double.toString(mLocation.latitude)+"&lng=" + Double.toString(mLocation.longitude);
-                    connection.setRequestMethod("POST");
-                    connection.setRequestProperty("Connection-Type", "Keep-Alive");
-                    connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-                    connection.setRequestProperty("Content-Transfer-Encoding", "binary");
-                    connection.setRequestProperty("Content-Length", "" + Integer.toString(body.getBytes().length));
-                    connection.setDoInput(true);
-                    connection.connect();
-                    os = new DataOutputStream(connection.getOutputStream());
-                    os.writeBytes(body);
-                    os.flush();
-                    os.close();
-                }
-            }
+            sendDataToServer(url, stream, os, connection);
             mCallback.onProgressUpdate(DownloadCallback.Progress.CONNECT_SUCCESS, 0);
             int responseCode = connection.getResponseCode();
             if (responseCode != HttpsURLConnection.HTTP_OK && responseCode != HttpURLConnection.HTTP_CREATED) {
                 throw new IOException("HTTPs error code: " + responseCode);
             }
-            // Retrieve the response body as an InputStream.
+            // Function to decide where the API call is going
             stream = connection.getInputStream();
             mCallback.onProgressUpdate(DownloadCallback.Progress.GET_INPUT_STREAM_SUCCESS, 0);
             if (stream != null) {
                 // Converts Stream to String with max length of 500.
-                result = readStream(stream, 500);
+                result = new String(IOUtils.toByteArray(stream));
+                //result = readStream(stream, 46000);
             }
         } finally {
             // Close Stream and disconnect HTTPS connection.
@@ -396,66 +318,89 @@ public class NetworkFragment extends Fragment {
         return result;
     }
 
-
-
-    /**
-     * Converts the contents of an InputStream to a String.
-     */
-    public String readStream(InputStream stream, int maxReadSize)
-            throws IOException {
-        Reader reader;
-        reader = new InputStreamReader(stream, "UTF-8");
-        char[] rawBuffer = new char[maxReadSize];
-        int readSize;
-        StringBuilder buffer = new StringBuilder();
-        while (((readSize = reader.read(rawBuffer)) != -1) && maxReadSize > 0) {
-            if (readSize > maxReadSize) {
-                readSize = maxReadSize;
+    private void sendDataToServer(URL url, InputStream stream, DataOutputStream os, HttpsURLConnection connection) throws IOException {
+        switch(url.toString()) {
+            case URL_GET: {
+                connection.setRequestMethod("GET");
+                connection.setDoInput(true);
+                connection.connect();
+                break;
             }
-            buffer.append(rawBuffer, 0, readSize);
-            maxReadSize -= readSize;
-        }
-        return buffer.toString();
-    }
+            case URL_UPLOAD: {
 
+                connection.setRequestMethod("POST");
+                connection.setRequestProperty("Connection-Type", "Keep-Alive");
+                connection.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
+                connection.setRequestProperty("Content-Transfer-Encoding", "multipart/form-data");
+                connection.setDoInput(true);
+                connection.connect();
+                os = new DataOutputStream(connection.getOutputStream());
+                os.writeBytes( twoHyphens + boundary + crlf);
+                os.writeBytes("Content-Disposition: form-data; name="+attachmentName+";filename="+getDocumentName(mDocumentUri)+crlf);
+                os.writeBytes(crlf);
+                sendFileToBytes(os);
+                os.writeBytes(crlf);
+                os.writeBytes(twoHyphens + boundary + twoHyphens + crlf);
+                os.flush();
+                os.close();
+                break;
+            }
+            case URL_PRINT: {
+                connection.setRequestMethod("POST");
+                connection.setRequestProperty("Connection-Type", "Keep-Alive");
+                connection.setRequestProperty("Content-Type", "application/pdf;charset=UTF-8");
+                connection.setRequestProperty("Content-Transfer-Encoding", "binary");
+                connection.setRequestProperty("Content-Disposition", "attachment;filename=\"actb.txt\"");
+                connection.setDoInput(true);
+                connection.connect();
+                os = new DataOutputStream(connection.getOutputStream());
+                sendFileToBytes(os);
+                os.flush();
+                os.close();
+                break;
+            }
+            case URL_PRINT_JOB_STATUS: {
 
+                break;
+            }
 
-    public List<Printer> readJsonStream(String in) throws IOException {
-        JsonReader reader = new JsonReader(new StringReader(in));
-        try {
-            return readMessagesArray(reader);
-        } finally {
-            reader.close();
-        }
-    }
+            case URL_PRINTER_STATUS: {
 
-    private List<Printer> readMessagesArray(JsonReader reader) throws IOException {
-        List<Printer> messages = new ArrayList<>();
+                break;
+            }
 
-        reader.beginArray();
-        while (reader.hasNext()) {
-            messages.add(readMessage(reader));
-        }
-        reader.endArray();
-        return messages;
-    }
+            case URL_SIGN_IN_TOKEN: {
+                String body_token = TOKEN_KEY + "=" + mIdToken;
+                connection.setRequestMethod("POST");
+                connection.setRequestProperty("Connection-Type", "Keep-Alive");
+                connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+                connection.setRequestProperty("Content-Transfer-Encoding", "binary");
+                connection.setRequestProperty("Content-Length", "" + Integer.toString(body_token.getBytes().length));
+                connection.setDoInput(true);
+                connection.connect();
+                os = new DataOutputStream(connection.getOutputStream());
+                os.writeBytes(body_token);
+                os.flush();
+                os.close();
+                break;
+            }
 
-    private Printer readMessage(JsonReader reader) throws IOException {
-        String printerName = null;
-
-        reader.beginObject();
-        while (reader.hasNext()) {
-            String name = reader.nextName();
-            if (name.equals("name")) {
-                printerName = reader.nextString();
-            } else {
-                reader.skipValue();
+            case URL_GET_LOCAL_PRINTERS: {
+                String body = "lat="+ Double.toString(mLocation.latitude)+"&lng=" + Double.toString(mLocation.longitude);
+                connection.setRequestMethod("POST");
+                connection.setRequestProperty("Connection-Type", "Keep-Alive");
+                connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+                connection.setRequestProperty("Content-Transfer-Encoding", "binary");
+                connection.setRequestProperty("Content-Length", "" + Integer.toString(body.getBytes().length));
+                connection.setDoInput(true);
+                connection.connect();
+                os = new DataOutputStream(connection.getOutputStream());
+                os.writeBytes(body);
+                os.flush();
+                os.close();
+                break;
             }
         }
-        reader.endObject();
-        Printer printer = new Printer();
-        printer.setName(printerName);
-        return printer;
     }
 
     private void sendFileToBytes(OutputStream os) {

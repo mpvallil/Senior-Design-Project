@@ -131,8 +131,7 @@ public class PrinterDisplayFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 if (!documentNameText.getText().equals(getString(R.string.text_no_document))) {
-                    mListener.onPrinterDisplayInteraction(NetworkFragmentBuilder.build(getActivity().getSupportFragmentManager(),
-                            NetworkFragment.URL_UPLOAD, contentUri));
+                    mListener.onPrinterDisplayInteraction(contentUri, printer.getPrinterId());
                     AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
                     alert.setMessage("You printed: "+documentNameText.getText()+ " to "+printer.getName())
                             .setTitle("Print Success!");
@@ -288,6 +287,6 @@ public class PrinterDisplayFragment extends Fragment {
      */
     public interface OnPrinterDisplayInteractionListener {
         // TODO: Update argument type and name
-        void onPrinterDisplayInteraction(NetworkFragment networkFragment);
+        void onPrinterDisplayInteraction(Uri uri, String printer_id);
     }
 }

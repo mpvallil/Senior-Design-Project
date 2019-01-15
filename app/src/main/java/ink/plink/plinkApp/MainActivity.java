@@ -30,6 +30,9 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.JsonObject;
 import com.squareup.picasso.Picasso;
 
+import java.net.CookieHandler;
+import java.net.CookieManager;
+
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, DownloadCallback<String>, SettingsFragment.OnSettingsInteractionListener,
                         GoogleMapsFragment.OnMapsInteractionListener, ManageDocument.OnManageDocumentInteractionListener,
@@ -54,6 +57,7 @@ public class MainActivity extends AppCompatActivity
     MainMenu mMainMenuFragment;
     Fragment currentFragment;
     private FragmentManager fm;
+    CookieManager cookieManager;
     private final FragmentManager.OnBackStackChangedListener backStackListener = new FragmentManager.OnBackStackChangedListener() {
         @Override
         public void onBackStackChanged() {
@@ -94,6 +98,8 @@ public class MainActivity extends AppCompatActivity
     JsonObject json;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        cookieManager = new CookieManager();
+        CookieHandler.setDefault(cookieManager);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         //Get Google User Account
@@ -256,7 +262,7 @@ public class MainActivity extends AppCompatActivity
         switch (tag) {
             case NetworkFragment.URL_GET_LOCAL_PRINTERS: {
                 GoogleMapsFragment frag = (GoogleMapsFragment) fm.findFragmentByTag(TAG_GOOGLE_MAPS_FRAG);
-                if (frag != null) {
+                if (frag != null && result.charAt(0) == '[') {
                     Log.i("Result: ", result);
                     frag.getLocalPrinters(result);
                 }
@@ -343,8 +349,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onPrinterDisplayInteraction(NetworkFragment printerNetworkFragment) {
-        mNetworkFragment = printerNetworkFragment;
+    public void onPrinterDisplayInteraction(Uri uri, String printer_id) {
+        mNetworkFragment = NetworkFragment.getPrintRequestInstance(fm, uri, printer_id);
         startDownload();
     }
 

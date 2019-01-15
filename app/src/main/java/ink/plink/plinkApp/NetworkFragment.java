@@ -11,6 +11,7 @@ import android.support.v4.app.FragmentManager;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.google.android.gms.common.util.IOUtils;
@@ -21,8 +22,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.CookieManager;
+import java.net.HttpCookie;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -31,7 +37,7 @@ import javax.net.ssl.HttpsURLConnection;
  * Implementation of headless Fragment that runs an AsyncTask to fetch data from the network.
  */
 public class NetworkFragment extends Fragment {
-    public static final String URL_PRINT = "https://plink.ink/printdoc";
+    public static final String URL_PRINT = "https://plink.ink/printrequest";
     public static final String URL_GET = "https://plink.ink/json"; // TODO: Change
     public static final String URL_POST = "https://plink.ink/upload";
     public static final String URL_UPLOAD = "https://plink.ink/upload";
@@ -45,9 +51,12 @@ public class NetworkFragment extends Fragment {
     private static final String URL_KEY = "Url Key";
     private static final String DOCUMENT_KEY = "Document Key";
     //private static final String CLIENT_TOKEN_KEY = "Client Token Key";
-    private static final String PRINTER_NAME_KEY = "Printer Name Key";
+    private static final String PRINTER_ID_KEY = "printer_id";
     private static final String LOCATION_KEY = "Location Key";
     private static final String TOKEN_KEY = "idToken";
+    private static final String COOKIE_HEADER = "Set-Cookie";
+    List<String> cookieHeaderList = new ArrayList<>();
+    public static CookieManager msCookieManager = new CookieManager();
 
 
     private DownloadCallback mCallback;
@@ -55,7 +64,7 @@ public class NetworkFragment extends Fragment {
 
     // Variables from arguments
     private String mUrlString;
-    private String mPrinterName;
+    private String mPrinterId;
     private Uri mDocumentUri;
     private LatLng mLocation;
     private String mIdToken;
@@ -102,14 +111,26 @@ public class NetworkFragment extends Fragment {
         return networkFragment;
     }
 
+    public static NetworkFragment getPrintRequestInstance(FragmentManager fragmentManager, Uri uri, String printer_id) {
+        NetworkFragment networkFragment = new NetworkFragment();
+        Bundle args = new Bundle();
+        args.putParcelable(DOCUMENT_KEY, uri);
+        args.putString(PRINTER_ID_KEY, printer_id);
+        args.putString(URL_KEY, URL_PRINT);
+        networkFragment.setArguments(args);
+        fragmentManager.beginTransaction().add(networkFragment, URL_PRINT).commit();
+        fragmentManager.executePendingTransactions();
+        return networkFragment;
+    }
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             mUrlString = getArguments().getString(URL_KEY);
-            mDocumentUri = getArguments().getParcelable(NetworkFragmentBuilder.DOCUMENT_KEY);
-            mLocation = getArguments().getParcelable(NetworkFragmentBuilder.LOCATION_KEY);
-            mPrinterName = getArguments().getString(NetworkFragmentBuilder.PRINTER_NAME_KEY);
+            mDocumentUri = getArguments().getParcelable(DOCUMENT_KEY);
+            mLocation = getArguments().getParcelable(LOCATION_KEY);
+            mPrinterId = getArguments().getString(PRINTER_ID_KEY);
             mIdToken = getArguments().getString(TOKEN_KEY);
         }
         setRetainInstance(true);
@@ -271,9 +292,11 @@ public class NetworkFragment extends Fragment {
             connection.setReadTimeout(3000);
             // Timeout for connection.connect() arbitrarily set to 3000ms.
             connection.setConnectTimeout(3000);
+            putCookieInConnection(connection);
             sendDataToServer(url, stream, os, connection);
             mCallback.onProgressUpdate(DownloadCallback.Progress.CONNECT_SUCCESS, 0);
             int responseCode = connection.getResponseCode();
+            getCookieFromConnection(connection);
             if (responseCode != HttpsURLConnection.HTTP_OK && responseCode != HttpURLConnection.HTTP_CREATED) {
                 throw new IOException("HTTPs error code: " + responseCode);
             }
@@ -283,7 +306,6 @@ public class NetworkFragment extends Fragment {
             if (stream != null) {
                 // Converts Stream to String with max length of 500.
                 result = new String(IOUtils.toByteArray(stream));
-                //result = readStream(stream, 46000);
             }
         } finally {
             // Close Stream and disconnect HTTPS connection.
@@ -327,13 +349,21 @@ public class NetworkFragment extends Fragment {
             case URL_PRINT: {
                 connection.setRequestMethod("POST");
                 connection.setRequestProperty("Connection-Type", "Keep-Alive");
-                connection.setRequestProperty("Content-Type", "application/pdf;charset=UTF-8");
-                connection.setRequestProperty("Content-Transfer-Encoding", "binary");
-                connection.setRequestProperty("Content-Disposition", "attachment;filename=\"actb.txt\"");
+                connection.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
+                connection.setRequestProperty("Content-Transfer-Encoding", "multipart/form-data");
                 connection.setDoInput(true);
                 connection.connect();
                 os = new DataOutputStream(connection.getOutputStream());
+                os.writeBytes( twoHyphens+boundary + crlf);
+                os.writeBytes("Content-Disposition: form-data; name="+PRINTER_ID_KEY+crlf);
+                os.writeBytes("Content-Type: text/plain"+crlf+crlf);
+                os.writeBytes(mPrinterId+crlf);
+                os.writeBytes( twoHyphens+boundary + crlf);
+                os.writeBytes("Content-Disposition: form-data; name="+attachmentName+";filename="+getDocumentName(mDocumentUri)+crlf);
+                os.writeBytes(crlf);
                 sendFileToBytes(os);
+                os.writeBytes(crlf);
+                os.writeBytes(twoHyphens+boundary + twoHyphens);
                 os.flush();
                 os.close();
                 break;
@@ -450,5 +480,24 @@ public class NetworkFragment extends Fragment {
             cursor.close();
         }
         return displayName;
+    }
+
+    private void getCookieFromConnection(HttpsURLConnection connection) {
+        Map<String, List<String>> connectionHeaders = connection.getHeaderFields();
+        cookieHeaderList = connectionHeaders.get(COOKIE_HEADER);
+        if (cookieHeaderList != null) {
+            for (String cookie : cookieHeaderList) {
+                msCookieManager.getCookieStore().add(null,HttpCookie.parse(cookie).get(0));
+            }
+        }
+
+    }
+
+    private void putCookieInConnection(HttpsURLConnection connection) {
+        if (msCookieManager.getCookieStore().getCookies().size() > 0) {
+            // While joining the Cookies, use ',' or ';' as needed. Most of the servers are using ';'
+            connection.setRequestProperty("Cookie",
+                    TextUtils.join(";",  msCookieManager.getCookieStore().getCookies()));
+        }
     }
 }

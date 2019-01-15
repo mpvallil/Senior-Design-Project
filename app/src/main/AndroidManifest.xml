@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="ncsu.project15.ece484_project15_client">
+    package="ink.plink.plinkApp">
 
     <!--
          The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
@@ -32,7 +32,7 @@
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
         <activity
-            android:name=".LoginActivity"
+            android:name="ink.plink.plinkApp.LoginActivity"
             android:screenOrientation="nosensor">
             <!--<intent-filter>-->
                 <!--<action android:name="android.intent.action.MAIN" />-->
@@ -40,7 +40,7 @@
             <!--</intent-filter>-->
         </activity>
 
-        <activity android:name=".SplashActivity">
+        <activity android:name="ink.plink.plinkApp.SplashActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -60,9 +60,9 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
 
-        <activity android:name=".DownloadActivity" />
+        <activity android:name="ink.plink.plinkApp.DownloadActivity" />
         <activity
-            android:name=".MainActivity"
+            android:name="ink.plink.plinkApp.MainActivity"
             android:label="@string/title_activity_main"
             android:screenOrientation="nosensor"
             android:theme="@style/AppTheme" />

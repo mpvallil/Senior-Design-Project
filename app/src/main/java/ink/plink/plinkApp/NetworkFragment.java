@@ -50,13 +50,17 @@ public class NetworkFragment extends Fragment {
 
     private static final String URL_KEY = "Url Key";
     private static final String DOCUMENT_KEY = "Document Key";
-    //private static final String CLIENT_TOKEN_KEY = "Client Token Key";
     private static final String PRINTER_ID_KEY = "printer_id";
     private static final String LOCATION_KEY = "Location Key";
     private static final String TOKEN_KEY = "idToken";
     private static final String COOKIE_HEADER = "Set-Cookie";
     List<String> cookieHeaderList = new ArrayList<>();
     public static CookieManager msCookieManager = new CookieManager();
+
+    //HTTP codes
+    public static final String HTTP_NOT_FOUND = "Not Found";
+    public static final String HTTP_UNAUTHORIZED = "Unauthorized";
+    public static final String HTTP_OK = "OK";
 
 
     private DownloadCallback mCallback;
@@ -153,7 +157,6 @@ public class NetworkFragment extends Fragment {
     @Override
     public void onDestroy() {
         // Cancel task when Fragment is destroyed.
-        Log.i("NetworkFrag", "Destroying");
         cancelDownload();
         super.onDestroy();
     }
@@ -183,13 +186,13 @@ public class NetworkFragment extends Fragment {
      */
     private class DownloadTask extends AsyncTask<String, Integer, DownloadTask.Result> {
 
-        private DownloadCallback<String> mCallback;
+        private DownloadCallback mCallback;
 
-        DownloadTask(DownloadCallback<String> callback) {
+        DownloadTask(DownloadCallback callback) {
             setCallback(callback);
         }
 
-        void setCallback(DownloadCallback<String> callback) {
+        void setCallback(DownloadCallback callback) {
             mCallback = callback;
         }
 

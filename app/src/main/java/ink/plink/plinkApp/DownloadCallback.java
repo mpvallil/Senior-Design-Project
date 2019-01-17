@@ -2,7 +2,7 @@ package ink.plink.plinkApp;
 
 import android.net.NetworkInfo;
 
-public interface DownloadCallback<String> {
+public interface DownloadCallback<T> {
     interface Progress {
         int ERROR = -1;
         int CONNECT_SUCCESS = 0;

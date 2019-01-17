@@ -44,6 +44,7 @@ public class NetworkFragment extends Fragment {
     public static final String URL_PRINTER_STATUS = "plink.ink/status"; // TODO: Change
     public static final String URL_PRINT_JOB_STATUS = "plink.ink"; // TODO: Change
     public static final String URL_SIGN_IN_TOKEN = "https://plink.ink/tokensignin";
+    public static final String URL_DATABASE_SIGN_IN_TOKEN = "https://plink.ink/createuser";
     public static final String URL_GET_LOCAL_PRINTERS = "https://plink.ink/getlocalprinters";
 
     public static final String TAG = "NetworkFragment";
@@ -58,8 +59,9 @@ public class NetworkFragment extends Fragment {
     public static CookieManager msCookieManager = new CookieManager();
 
     //HTTP codes
-    public static final String HTTP_NOT_FOUND = "Not Found";
-    public static final String HTTP_UNAUTHORIZED = "Unauthorized";
+    public static final String HTTP_NOT_FOUND = "404";
+    public static final String HTTP_UNAUTHORIZED = "401";
+    public static final String HTTP_SERVER_ERROR = "502";
     public static final String HTTP_OK = "OK";
 
 
@@ -100,6 +102,17 @@ public class NetworkFragment extends Fragment {
         args.putString(URL_KEY, URL_SIGN_IN_TOKEN);
         networkFragment.setArguments(args);
         fragmentManager.beginTransaction().add(networkFragment, URL_SIGN_IN_TOKEN).commit();
+        fragmentManager.executePendingTransactions();
+        return networkFragment;
+    }
+
+    public static NetworkFragment getTokenDatabaseSigninInstance(FragmentManager fragmentManager, String idToken) {
+        NetworkFragment networkFragment = new NetworkFragment();
+        Bundle args = new Bundle();
+        args.putString(TOKEN_KEY, idToken);
+        args.putString(URL_KEY, URL_DATABASE_SIGN_IN_TOKEN);
+        networkFragment.setArguments(args);
+        fragmentManager.beginTransaction().add(networkFragment, URL_DATABASE_SIGN_IN_TOKEN).commit();
         fragmentManager.executePendingTransactions();
         return networkFragment;
     }
@@ -204,11 +217,15 @@ public class NetworkFragment extends Fragment {
         class Result {
             public String mResultValue;
             public Exception mException;
+            public int mHTTPCode;
             public Result(String resultValue) {
                 mResultValue = resultValue;
             }
             public Result(Exception exception) {
                 mException = exception;
+            }
+            public Result(int httpCode) {
+                mHTTPCode = httpCode;
             }
         }
 
@@ -246,11 +263,17 @@ public class NetworkFragment extends Fragment {
                         throw new IOException("No response received.");
                     }
                 } catch(Exception e) {
-                    Log.i("nf dt doinbackground", e.toString());
+                    mCallback.onProgressUpdate(DownloadCallback.Progress.ERROR, 0);
                     result = new Result(e);
                 }
             }
             return result;
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+            mCallback.onProgressUpdate(values[0], values[1]);
         }
 
         /**
@@ -297,18 +320,20 @@ public class NetworkFragment extends Fragment {
             connection.setConnectTimeout(3000);
             putCookieInConnection(connection);
             sendDataToServer(url, stream, os, connection);
-            mCallback.onProgressUpdate(DownloadCallback.Progress.CONNECT_SUCCESS, 0);
+            mCallback.onProgressUpdate(DownloadCallback.Progress.CONNECT_SUCCESS, 25);
             int responseCode = connection.getResponseCode();
             getCookieFromConnection(connection);
             if (responseCode != HttpsURLConnection.HTTP_OK && responseCode != HttpURLConnection.HTTP_CREATED) {
-                throw new IOException("HTTPs error code: " + responseCode);
+                throw new IOException(Integer.toString(responseCode));
             }
             // Function to decide where the API call is going
             stream = connection.getInputStream();
-            mCallback.onProgressUpdate(DownloadCallback.Progress.GET_INPUT_STREAM_SUCCESS, 0);
+            mCallback.onProgressUpdate(DownloadCallback.Progress.GET_INPUT_STREAM_SUCCESS, 50);
             if (stream != null) {
                 // Converts Stream to String with max length of 500.
+                mCallback.onProgressUpdate(DownloadCallback.Progress.PROCESS_INPUT_STREAM_IN_PROGRESS, 75);
                 result = new String(IOUtils.toByteArray(stream));
+                mCallback.onProgressUpdate(DownloadCallback.Progress.PROCESS_INPUT_STREAM_SUCCESS, 100);
             }
         } finally {
             // Close Stream and disconnect HTTPS connection.
@@ -382,6 +407,22 @@ public class NetworkFragment extends Fragment {
             }
 
             case URL_SIGN_IN_TOKEN: {
+                String body_token = TOKEN_KEY + "=" + mIdToken;
+                connection.setRequestMethod("POST");
+                connection.setRequestProperty("Connection-Type", "Keep-Alive");
+                connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+                connection.setRequestProperty("Content-Transfer-Encoding", "binary");
+                connection.setRequestProperty("Content-Length", "" + Integer.toString(body_token.getBytes().length));
+                connection.setDoInput(true);
+                connection.connect();
+                os = new DataOutputStream(connection.getOutputStream());
+                os.writeBytes(body_token);
+                os.flush();
+                os.close();
+                break;
+            }
+
+            case URL_DATABASE_SIGN_IN_TOKEN: {
                 String body_token = TOKEN_KEY + "=" + mIdToken;
                 connection.setRequestMethod("POST");
                 connection.setRequestProperty("Connection-Type", "Keep-Alive");

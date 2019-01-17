@@ -221,7 +221,7 @@ public class ManageDocument extends Fragment {
                 String fileName = filePath.substring(filePath.lastIndexOf(File.separator)+1);
                 Log.i("File name", fileName);
                 documentTitle.setText(getDocumentName(contentUri));
-                documentNetworkFragment = NetworkFragmentBuilder.build(getActivity().getSupportFragmentManager(), NetworkFragment.URL_UPLOAD, contentUri);
+                //documentNetworkFragment = NetworkFragmentBuilder.build(getActivity().getSupportFragmentManager(), NetworkFragment.URL_UPLOAD, contentUri);
             }
         }
     }

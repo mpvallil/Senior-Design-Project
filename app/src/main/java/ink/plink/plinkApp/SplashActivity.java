@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.support.annotation.NonNull;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -29,14 +30,14 @@ public class SplashActivity extends AppCompatActivity implements DownloadCallbac
     private static final String TAG = "SplashActivity";
 
     // Views to crossfade
-    private View mainLogo = findViewById(R.id.imageView2);
-    private View notifyUser = findViewById(R.id.notifyUser);
-    private View continueButton = findViewById(R.id.continueButton);
-    private View cancelButton = findViewById(R.id.cancelButton);
+    private View mainLogo;
+    private View notifyUser;
+    private View continueButton;
+    private View cancelButton;
+    private ProgressBar progressBarHorizontal;
     private int systemShortAnimTime;
 
     SignInButton signInButton;
-    ProgressBar progressBar;
     GoogleSignInClient mGoogleSignInClient;
     GoogleSignInAccount userAccount;
 
@@ -46,9 +47,13 @@ public class SplashActivity extends AppCompatActivity implements DownloadCallbac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
-        progressBar = findViewById(R.id.login_progress_splash);
+        mainLogo = findViewById(R.id.imageView2);
+        notifyUser = findViewById(R.id.notifyUser);
+        continueButton = findViewById(R.id.continueButton);
+        cancelButton = findViewById(R.id.cancelButton);
+        progressBarHorizontal = findViewById(R.id.determinateBar);
+        progressBarHorizontal.setVisibility(View.GONE);
         signInButton = findViewById(R.id.sign_in_button_splash);
-        signInButton.setAlpha(0);
 
         systemShortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
@@ -79,14 +84,14 @@ public class SplashActivity extends AppCompatActivity implements DownloadCallbac
             // Check for existing Google Sign In account, if the user is already signed in
             // the GoogleSignInAccount will be non-null.
             GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
-            handleTokenSignIn(account);
+            handleTokenSignIn(account, true);
         }
 
     }
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-        signInButton.animate().setStartDelay(500).alpha(1.0f).setDuration(1000).start();
+        //signInButton.animate().setStartDelay(500).alpha(1.0f).setDuration(1000).start();
         signInButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -96,7 +101,7 @@ public class SplashActivity extends AppCompatActivity implements DownloadCallbac
         continueButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //TODO: API call to add user to database
+                handleTokenSignIn(userAccount, false);
             }
         });
         cancelButton.setOnClickListener(new View.OnClickListener() {
@@ -128,7 +133,7 @@ public class SplashActivity extends AppCompatActivity implements DownloadCallbac
     private void handleSignInResult(Task<GoogleSignInAccount> completedTask) {
         try {
             GoogleSignInAccount account = completedTask.getResult(ApiException.class);
-            handleTokenSignIn(account);
+            handleTokenSignIn(account, true);
         } catch (ApiException e) {
             // The ApiException status code indicates the detailed failure reason.
             // Please refer to the GoogleSignInStatusCodes class reference for more information.
@@ -141,7 +146,6 @@ public class SplashActivity extends AppCompatActivity implements DownloadCallbac
     private void updateUI(GoogleSignInAccount account, boolean isRegistered) {
         if (account != null) {
             if (isRegistered) {
-                progressBar.setVisibility(View.VISIBLE);
                 Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                 intent.putExtra(MainActivity.KEY_USER_ACCOUNT, account);
                 startActivity(intent);
@@ -154,17 +158,20 @@ public class SplashActivity extends AppCompatActivity implements DownloadCallbac
         }
     }
 
-    private void handleTokenSignIn(GoogleSignInAccount account) {
+    private void handleTokenSignIn(GoogleSignInAccount account, boolean isInDatabase) {
         if (account != null) {
-            userAccount = account;
-            NetworkFragment signInFragment = NetworkFragment.getTokenSigninInstance(getSupportFragmentManager(), account.getIdToken());
-            signInFragment.startDownload();
+            if (isInDatabase) {
+                userAccount = account;
+                NetworkFragment signInFragment = NetworkFragment.getTokenSigninInstance(getSupportFragmentManager(), account.getIdToken());
+                signInFragment.startDownload();
+            } else {
+                NetworkFragment.getTokenDatabaseSigninInstance(getSupportFragmentManager(), account.getIdToken()).startDownload();
+            }
         }
     }
 
     @Override
     public void updateFromDownload(String result) {
-        Log.i("Result:", result);
         if (result != null) {
             if (result.contains(NetworkFragment.HTTP_UNAUTHORIZED)) {
                 updateUI(null, false);
@@ -172,9 +179,14 @@ public class SplashActivity extends AppCompatActivity implements DownloadCallbac
                 updateUI(userAccount, false);
             } else if (result.contains(NetworkFragment.HTTP_OK)) {
                 updateUI(userAccount, true);
+            } else if (result.contains(NetworkFragment.HTTP_SERVER_ERROR)) {
+                progressBarHorizontal.setProgress(0);
+                new AlertDialog.Builder(this).setMessage("The Plink Service is experiencing difficulty")
+                        .setTitle("Error")
+                        .setPositiveButton("OK", null)
+                        .create()
+                        .show();
             }
-        } else {
-            Log.i("Result", "is null");
         }
     }
 
@@ -187,8 +199,30 @@ public class SplashActivity extends AppCompatActivity implements DownloadCallbac
     }
 
     @Override
-    public void onProgressUpdate(int progressCode, int percentComplete) {
-
+    public void onProgressUpdate(final int progressCode, final int percentComplete) {
+        this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                switch(progressCode) {
+                    case Progress.ERROR:
+                        progressBarHorizontal.setProgress(percentComplete);
+                        break;
+                    case Progress.CONNECT_SUCCESS:
+                        progressBarHorizontal.setVisibility(View.VISIBLE);
+                        progressBarHorizontal.setProgress(percentComplete);
+                        break;
+                    case Progress.GET_INPUT_STREAM_SUCCESS:
+                        progressBarHorizontal.setProgress(percentComplete);
+                        break;
+                    case Progress.PROCESS_INPUT_STREAM_IN_PROGRESS:
+                        progressBarHorizontal.setProgress(percentComplete);
+                        break;
+                    case Progress.PROCESS_INPUT_STREAM_SUCCESS:
+                        progressBarHorizontal.setProgress(percentComplete);
+                        break;
+                }
+            }
+        });
     }
 
     @Override

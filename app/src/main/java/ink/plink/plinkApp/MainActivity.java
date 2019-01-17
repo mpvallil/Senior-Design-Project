@@ -95,7 +95,6 @@ public class MainActivity extends AppCompatActivity
     ActionBarDrawerToggle toggle;
     MenuItem drawerItem;
 
-    JsonObject json;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         cookieManager = new CookieManager();
@@ -118,10 +117,6 @@ public class MainActivity extends AppCompatActivity
                 .add(R.id.flContent, mGoogleMapsFragment, TAG_GOOGLE_MAPS_FRAG)
                 .commit();
         currentFragment = mGoogleMapsFragment;
-
-        json = new JsonObject();
-        json.addProperty("name", "printer1");
-        Log.i("JSON", json.toString());
     }
 
     private void setDrawerLayout() {

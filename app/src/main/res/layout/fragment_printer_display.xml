@@ -75,7 +75,7 @@
             android:layout_weight="1"
             android:divider="?android:attr/dividerHorizontal"
             android:showDividers="middle"
-            android:stretchColumns="1"
+            android:shrinkColumns="*"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@+id/divider">
@@ -84,48 +84,53 @@
                 android:id="@+id/row_choose_document"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:paddingBottom="12dp"
-                android:gravity="center">
+                android:gravity="center"
+                android:paddingBottom="12dp">
 
                 <Button
                     android:id="@+id/button_choose_document"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/text_choose_document" />
 
             </TableRow>
 
             <TableRow
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:gravity="center">
 
                 <TextView
                     android:id="@+id/textView_document_name"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_width="fill_parent"
+                    android:layout_height="match_parent"
                     android:layout_gravity="center"
                     android:text="@string/text_no_document"
+                    android:textAlignment="center"
                     android:textColor="@color/colorPurpleAccent"
                     android:textSize="18sp" />
+
             </TableRow>
 
             <TableRow
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:layout_gravity="start"
+                android:gravity="start"
                 android:paddingTop="24dp">
 
                 <TextView
                     android:id="@+id/textView6"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="start"
                     android:text="@string/text_color_settings" />
 
                 <Spinner
                     android:id="@+id/spinner"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="right"
+                    android:layout_gravity="end"
                     android:entries="@array/array_colors" />
 
 
@@ -152,12 +157,12 @@
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
             android:layout_marginBottom="16dp"
-            android:text="@string/text_print_button"
-            android:theme="@style/AppTheme"
-            android:background="@color/colorDarkPurple"
-            android:textColor="@android:color/white"
-            android:clickable="false"
             android:alpha=".5"
+            android:background="@color/colorDarkPurple"
+            android:clickable="false"
+            android:text="@string/text_print_button"
+            android:textColor="@android:color/white"
+            android:theme="@style/AppTheme"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />

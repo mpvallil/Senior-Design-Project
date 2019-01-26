@@ -11,8 +11,14 @@ import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import ink.plink.plinkApp.dummy.DummyContent;
 import ink.plink.plinkApp.dummy.DummyContent.DummyItem;
@@ -30,6 +36,9 @@ public class PrinterOwnerFragment extends Fragment {
     // TODO: Customize parameters
     private int mColumnCount = 1;
     private OnPrinterOwnerFragmentInteractionListener mListener;
+    List<Printer> ownerPrinterList;
+    RecyclerView recyclerView;
+    ProgressBar progressBar;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -62,7 +71,7 @@ public class PrinterOwnerFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_printerowner_list, container, false);
         setToolbar(view);
-        RecyclerView recyclerView = view.findViewById(R.id.list);
+        recyclerView = view.findViewById(R.id.list);
         // Set the adapter
         if (recyclerView != null) {
             Context context = view.getContext();
@@ -71,10 +80,16 @@ public class PrinterOwnerFragment extends Fragment {
             } else {
                 recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
             }
-            recyclerView.setAdapter(new MyPrinterOwnerRecyclerViewAdapter(DummyContent.ITEMS, mListener));
+            progressBar = view.findViewById(R.id.progressBar);
+            getPrintersByOwnerList();
         }
         return view;
     }
+
+    private void getPrintersByOwnerList() {
+        NetworkFragment.getGetPrintersByOwnerInstance(getChildFragmentManager()).startDownload();
+    }
+
     private void setToolbar(View v) {
         setHasOptionsMenu(true);
         Toolbar fragmentToolbar = (Toolbar) v.findViewById(R.id.toolbar);
@@ -114,6 +129,31 @@ public class PrinterOwnerFragment extends Fragment {
         mListener = null;
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        switch(id) {
+            case R.id.action_refresh: {
+                progressBar.setVisibility(View.VISIBLE);
+                recyclerView.setAdapter(null);
+                getPrintersByOwnerList();
+            }
+        }
+        return false;
+    }
+
+    public void setPrinterList(String printerJSON) {
+        if (printerJSON.startsWith("[")) {
+            ownerPrinterList = new ArrayList<>(Arrays.asList(Printer.getPrinterList(printerJSON)));
+        } else {
+            ownerPrinterList = new ArrayList<>();
+        }
+        ownerPrinterList.add(new Printer().setName("Test Printer List 1").setStatus(true));
+        ownerPrinterList.add(new Printer().setName("Test Printer List 2").setStatus(false));
+        progressBar.setVisibility(View.GONE);
+        recyclerView.setAdapter(new MyPrinterOwnerRecyclerViewAdapter(ownerPrinterList, mListener));
+    }
+
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
@@ -126,6 +166,7 @@ public class PrinterOwnerFragment extends Fragment {
      */
     public interface OnPrinterOwnerFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onPrinterOwnerFragmentInteraction(DummyItem item);
+        void onPrinterOwnerFragmentInteraction(Printer printer);
+        void onPrinterOwnerFragmentGetPrinters();
     }
 }

@@ -75,6 +75,14 @@ public class Printer {
         }
     }
 
+    String getStatusAsString() {
+        if (this.status != 0) {
+            return "Active";
+        } else {
+            return "Offline";
+        }
+    }
+
     Printer setColor(boolean color) {
         if (color) {
             this.color = 1;

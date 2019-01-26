@@ -46,6 +46,7 @@ public class NetworkFragment extends Fragment {
     public static final String URL_SIGN_IN_TOKEN = "https://plink.ink/tokensignin";
     public static final String URL_DATABASE_SIGN_IN_TOKEN = "https://plink.ink/createuser";
     public static final String URL_GET_LOCAL_PRINTERS = "https://plink.ink/getlocalprinters";
+    public static final String URL_GET_PRINTERS_BY_OWNER = "https://plink.ink/getprintersbyowner";
 
     public static final String TAG = "NetworkFragment";
 
@@ -136,6 +137,16 @@ public class NetworkFragment extends Fragment {
         args.putString(URL_KEY, URL_PRINT);
         networkFragment.setArguments(args);
         fragmentManager.beginTransaction().add(networkFragment, URL_PRINT).commit();
+        fragmentManager.executePendingTransactions();
+        return networkFragment;
+    }
+
+    public static NetworkFragment getGetPrintersByOwnerInstance(FragmentManager fragmentManager) {
+        NetworkFragment networkFragment = new NetworkFragment();
+        Bundle args = new Bundle();
+        args.putString(URL_KEY, URL_GET_PRINTERS_BY_OWNER);
+        networkFragment.setArguments(args);
+        fragmentManager.beginTransaction().add(networkFragment, URL_GET_PRINTERS_BY_OWNER).commit();
         fragmentManager.executePendingTransactions();
         return networkFragment;
     }

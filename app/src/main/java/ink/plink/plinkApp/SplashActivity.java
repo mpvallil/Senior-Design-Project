@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -34,6 +35,7 @@ public class SplashActivity extends AppCompatActivity implements DownloadCallbac
     private View notifyUser;
     private View continueButton;
     private View cancelButton;
+    private TextView userInfoText;
     private ProgressBar progressBarHorizontal;
     private int systemShortAnimTime;
 
@@ -49,6 +51,7 @@ public class SplashActivity extends AppCompatActivity implements DownloadCallbac
         setContentView(R.layout.activity_splash);
         mainLogo = findViewById(R.id.imageView2);
         notifyUser = findViewById(R.id.notifyUser);
+        userInfoText = findViewById(R.id.userInfoText);
         continueButton = findViewById(R.id.continueButton);
         cancelButton = findViewById(R.id.cancelButton);
         progressBarHorizontal = findViewById(R.id.determinateBar);
@@ -151,6 +154,7 @@ public class SplashActivity extends AppCompatActivity implements DownloadCallbac
                 startActivity(intent);
                 finish();
             } else {
+                userInfoText.setText(getString(R.string.userInfoTextString, account.getDisplayName(), account.getEmail()));
                 crossfadeView(true);
             }
         } else {

@@ -2,55 +2,29 @@
     <string name="app_name">Plink</string>
     // MainMenu strings
     <string name="test_printer_owner_landing">Printer Owner Landing-Test</string>
-    <string name="test_send_document">Manage Documents</string>
+    <string name="test_send_document">Manage Print Jobs</string>
     <string name="test_map_layout">Map Layout-Test</string>
     <string name="test_login">Login Screen-Test</string>
-    <string name="test_MainMenu">Main Menu</string>
     // Activity Name strings
-    <string name="title_activity_maps" />
-    <string name="title_activity_login">Log in</string>
     // MapsActivity strings
-    <string name="title_printer_map_textView">Printer Map</string>
-    <string name="title_filter_button">Filter</string>
     // Login strings
-    <string name="prompt_email">Email</string>
-    <string name="prompt_password">Password (optional)</string>
-    <string name="action_sign_in">Sign in or register</string>
-    <string name="action_sign_in_short">Sign in</string>
-    <string name="error_invalid_email">This email address is invalid</string>
-    <string name="error_invalid_password">This password is too short</string>
-    <string name="error_incorrect_password">This password is incorrect</string>
-    <string name="error_field_required">This field is required</string>
-    <string name="permission_rationale">"Contacts permissions are needed for providing email
-        completions."
-    </string>
     // Strings in filter_menu
-    <string name="select_printer_color">Color:</string>
-    <string name="select_printer_color_bw">Black/White</string>
-    <string name="select_printer_color_color">Color</string>
     <string name="test_post_document">Send POST</string>
     <string name="title_activity_main">MainActivity</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="action_settings">Settings</string>
-    <string name="title_activity_google_maps_fragment">Map</string>
 
     // NavigationMenu Strings
     <string name="nav_drawer_Settings">Settings</string>
-    <string name="test_GoogleMap">Map Fragment</string>
     <string name="nav_header_title">Android Studio</string>
     <string name="nav_header_subtitle">android.studio@android.com</string>
     <string name="nav_header_desc">Navigation header</string>
-    <string name="nav_drawer_Map">Find a Printer</string>
-    <string name="nav_drawer_Owner">Register a Printer</string>
     <string name="nav_drawer_Logout">Log out</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     // SettingsFragment
-    <string name="hello_blank_fragment">Hello SettingsFragment</string>
 
     // Google Client Auth
-    <string name="server_client_id">21063463146–563tlraqn4u5sohmvk0rjcmob8d6bvdu.apps.googleusercontent.com</string>
     <string name="backend_server_id">21063463146-ilb4f9tl0ijq9hakjrhl8s3650kt1hh1.apps.googleusercontent.com</string>
     <string name="open_document">Open Document</string>
     <string name="upload_document_button">Upload</string>
@@ -58,9 +32,6 @@
 
     // Printer Settings
     <string name="text_color_settings">Color Settings</string>
-    <string name="text_black_and_white">Black and White</string>
-    <string name="text_color">Color</string>
-    <string name="text_active">Printer Active</string>
     <string name="switch_active_printer_text">Active</string>
     <string name="text_set_price">Set Price per Print</string>
     <string name="text_price_zero_decimal">$0.</string>
@@ -70,21 +41,18 @@
     <string name="text_no_document">No Document Selected</string>
     <string name="toolbar_refresh">Refresh</string>
     <string name="nav_drawer_About">About</string>
-    <string name="toolbar_edit">Edit</string>
     <string name="title_printer_owner_menu">Printer Owner</string>
-    <string name="select_printer_price">Price</string>
     <string name="nav_menu_General">General</string>
     <string name="nav_drawer_owner_overview">See Your Earnings</string>
     <string name="nav_drawer_Owner_manage">Add/Manage Printer</string>
     <string name="select_printer_paper">Select Paper Available</string>
-    <string name="select_paper_size_8_11">8.5 x 11</string>
-    <string name="select_paper_size_11_17">11 x 17</string>
     <string name="title_printer_settings">Manage Printer</string>
     <string name="title_printer_display" />
     <string name="switch_offline_printer_text">Offline</string>
     <string name="notify_user_paragraph">You are trying to sign into Plink using a Google account that is not registered with our service. With your permission, we will store the following information and register you:</string>
     <string name="sign_in_confirm_text">OK, Sounds Good!</string>
-    <string name="sign_in_cancel_text">No, take me back</string>
+    <string name="sign_in_cancel_text"><u>No, take me back</u></string>
+    <string name="userInfoTextString">Name: %1$s\nEmail: %2$s\n</string>
     <string-array name="array_colors">
         <item name="text_black_and_white">Black and White</item>
         <item name="text_color">Color</item>

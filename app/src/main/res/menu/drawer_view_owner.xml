@@ -3,10 +3,6 @@
     <item android:title="@string/nav_menu_General">
         <menu>
             <group android:id="@+id/group_nav">
-                <!--<item-->
-                <!--android:id="@+id/nav_drawer_MainMenu"-->
-                <!--android:title="@string/test_MainMenu"-->
-                <!--android:checkable="false" />-->
                 <item
                     android:id="@+id/nav_drawer_SendDocument"
                     android:checkable="false"

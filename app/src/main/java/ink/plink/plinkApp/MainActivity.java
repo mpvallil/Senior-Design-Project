@@ -32,6 +32,8 @@ import com.squareup.picasso.Picasso;
 
 import java.net.CookieHandler;
 import java.net.CookieManager;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, DownloadCallback<String>, SettingsFragment.OnSettingsInteractionListener,
@@ -254,12 +256,19 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void updateFromDownload(String result) {
         String tag = mNetworkFragment.getTag();
+        Log.i("Result: ", result);
         switch (tag) {
             case NetworkFragment.URL_GET_LOCAL_PRINTERS: {
                 GoogleMapsFragment frag = (GoogleMapsFragment) fm.findFragmentByTag(TAG_GOOGLE_MAPS_FRAG);
                 if (frag != null && result.charAt(0) == '[') {
-                    Log.i("Result: ", result);
                     frag.getLocalPrinters(result);
+                }
+            }
+
+            case NetworkFragment.URL_GET_PRINTERS_BY_OWNER: {
+                PrinterOwnerFragment frag = (PrinterOwnerFragment) fm.findFragmentByTag(TAG_PRINTER_OWNER_FRAGMENT);
+                if (frag != null) {
+                    frag.setPrinterList(result);
                 }
             }
         }
@@ -333,7 +342,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onPrinterOwnerFragmentInteraction(DummyContent.DummyItem item) {
+    public void onPrinterOwnerFragmentInteraction(Printer printer) {
         if(fm.findFragmentByTag(TAG_PRINTER_OWNER_FRAGMENT).isVisible()) {
             fm.beginTransaction()
                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
@@ -344,9 +353,14 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onPrinterDisplayInteraction(Uri uri, String printer_id) {
-        mNetworkFragment = NetworkFragment.getPrintRequestInstance(fm, uri, printer_id);
+    public void onPrinterOwnerFragmentGetPrinters() {
+        mNetworkFragment = NetworkFragment.getGetPrintersByOwnerInstance(fm);
         startDownload();
+    }
+
+    @Override
+    public void onPrinterDisplayInteraction(Uri uri, String printer_id) {
+        NetworkFragment.getPrintRequestInstance(fm, uri, printer_id).startDownload();
     }
 
     @Override

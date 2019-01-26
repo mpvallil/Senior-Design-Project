@@ -19,11 +19,11 @@ import java.util.List;
  */
 public class MyPrinterOwnerRecyclerViewAdapter extends RecyclerView.Adapter<MyPrinterOwnerRecyclerViewAdapter.ViewHolder> {
 
-    private final List<DummyItem> mValues;
+    private final List<Printer> mValues;
     private final OnPrinterOwnerFragmentInteractionListener mListener;
 
-    public MyPrinterOwnerRecyclerViewAdapter(List<DummyItem> items, OnPrinterOwnerFragmentInteractionListener listener) {
-        mValues = items;
+    public MyPrinterOwnerRecyclerViewAdapter(List<Printer> printers, OnPrinterOwnerFragmentInteractionListener listener) {
+        mValues = printers;
         mListener = listener;
     }
 
@@ -37,9 +37,9 @@ public class MyPrinterOwnerRecyclerViewAdapter extends RecyclerView.Adapter<MyPr
 
     @Override
     public void onBindViewHolder(@NonNull final ViewHolder holder, int position) {
-        holder.mItem = mValues.get(position);
-        holder.mIdView.setText(mValues.get(position).id);
-        holder.mContentView.setText(mValues.get(position).content);
+        holder.mPrinter = mValues.get(position);
+        holder.mIdView.setText(mValues.get(position).getName());
+        holder.mContentView.setText(mValues.get(position).getStatusAsString());
 
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -47,7 +47,7 @@ public class MyPrinterOwnerRecyclerViewAdapter extends RecyclerView.Adapter<MyPr
                 if (null != mListener) {
                     // Notify the active callbacks interface (the activity, if the
                     // fragment is attached to one) that an item has been selected.
-                    mListener.onPrinterOwnerFragmentInteraction(holder.mItem);
+                    mListener.onPrinterOwnerFragmentInteraction(holder.mPrinter);
                 }
             }
         });
@@ -62,7 +62,7 @@ public class MyPrinterOwnerRecyclerViewAdapter extends RecyclerView.Adapter<MyPr
         public final View mView;
         public final TextView mIdView;
         public final TextView mContentView;
-        public DummyItem mItem;
+        public Printer mPrinter;
 
         public ViewHolder(View view) {
             super(view);

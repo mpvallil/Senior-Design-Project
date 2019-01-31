@@ -86,8 +86,8 @@ public class SplashActivity extends AppCompatActivity implements DownloadCallbac
         } else {
             // Check for existing Google Sign In account, if the user is already signed in
             // the GoogleSignInAccount will be non-null.
-            GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
-            handleTokenSignIn(account, true);
+//            GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
+//            handleTokenSignIn(account, true);
         }
 
     }
@@ -158,8 +158,15 @@ public class SplashActivity extends AppCompatActivity implements DownloadCallbac
                 crossfadeView(true);
             }
         } else {
-            Toast.makeText(this, "Login Failed", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Login Failed, Please Contact Google", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void simulateLogin() {
+
+        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+        startActivity(intent);
+        finish();
     }
 
     private void handleTokenSignIn(GoogleSignInAccount account, boolean isInDatabase) {
@@ -190,6 +197,7 @@ public class SplashActivity extends AppCompatActivity implements DownloadCallbac
                         .setPositiveButton("OK", null)
                         .create()
                         .show();
+                simulateLogin();
             }
         }
     }

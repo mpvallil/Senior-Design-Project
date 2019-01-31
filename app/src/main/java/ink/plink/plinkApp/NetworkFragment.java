@@ -464,6 +464,13 @@ public class NetworkFragment extends Fragment {
                 os.close();
                 break;
             }
+
+            case URL_GET_PRINTERS_BY_OWNER: {
+                connection.setRequestMethod("GET");
+                connection.setDoInput(true);
+                connection.connect();
+                break;
+            }
         }
     }
 

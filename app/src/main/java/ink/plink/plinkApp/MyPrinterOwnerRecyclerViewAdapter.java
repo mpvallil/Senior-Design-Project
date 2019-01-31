@@ -8,12 +8,10 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import ink.plink.plinkApp.PrinterOwnerFragment.OnPrinterOwnerFragmentInteractionListener;
-import ink.plink.plinkApp.dummy.DummyContent.DummyItem;
 
 import java.util.List;
 
 /**
- * {@link RecyclerView.Adapter} that can display a {@link DummyItem} and makes a call to the
  * specified {@link OnPrinterOwnerFragmentInteractionListener}.
  * TODO: Replace the implementation with code for your data type.
  */

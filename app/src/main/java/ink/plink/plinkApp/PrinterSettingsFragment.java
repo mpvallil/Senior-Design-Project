@@ -9,10 +9,15 @@ import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
 
 
@@ -31,9 +36,18 @@ public class PrinterSettingsFragment extends Fragment {
     private String mParam1;
     private String mParam2;
 
+    //Printer used for Display
+    private Printer mPrinter;
+
+    //Views
+    private Switch activePrinterSwitch;
 
     public PrinterSettingsFragment() {
         // Required empty public constructor
+    }
+
+    public void setPrinter(Printer printer) {
+        this.mPrinter = printer;
     }
 
     /**
@@ -68,8 +82,21 @@ public class PrinterSettingsFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_printer_settings, container, false);
+        // Find and update the Printer views
+        TextView printerNameText = v.findViewById(R.id.textView_printer_name);
+        TextView printerTypeText = v.findViewById(R.id.textView_printer_type);
+        TextView printerStatusText = v.findViewById(R.id.textView_printer_status);
+        activePrinterSwitch = v.findViewById(R.id.switch_active_printer);
+
+        printerNameText.setText(mPrinter.getName());
+        printerTypeText.setText(mPrinter.getPrinterType());
+        if (mPrinter.getStatus()) {
+            printerStatusText.setText(R.string.switch_active_printer_text);
+        } else {
+            printerStatusText.setText(R.string.switch_offline_printer_text);
+        }
         //Set the toolbar
-        setToolbar(v);
+        //setToolbar(v);
         //Hide Keyboard after changing price
         hideKeyboard(v);
         //Set Buttons in View
@@ -80,7 +107,12 @@ public class PrinterSettingsFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
-        inflater.inflate(R.menu.toolbar_menu_printer_display, menu);
+        inflater.inflate(R.menu.toolbar_menu_printer_owner, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        return super.onOptionsItemSelected(item);
     }
 
     private void setButtons(View v) {

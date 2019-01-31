@@ -23,17 +23,12 @@ import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import ink.plink.plinkApp.dummy.DummyContent;
-
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.gson.JsonObject;
 import com.squareup.picasso.Picasso;
 
 import java.net.CookieHandler;
 import java.net.CookieManager;
-import java.util.ArrayList;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, DownloadCallback<String>, SettingsFragment.OnSettingsInteractionListener,
@@ -46,12 +41,11 @@ public class MainActivity extends AppCompatActivity
 
     /** Fragment references */
     // Fields for naming Fragments from the Nav Menu
-    private static final String TAG_MAIN_MENU_FRAG = "MAIN_MENU_FRAG";
     private static final String TAG_GOOGLE_MAPS_FRAG = "GOOGLE_MAPS_FRAG";
     private static final String TAG_PRINTER_OWNER_FRAGMENT = "PRINTER_OWNER_FRAG";
     private static final String TAG_SETTINGS_FRAG = "SETTINGS_FRAG";
     private static final String TAG_MANAGE_DOCUMENT_FRAG = "MANAGE_FRAG";
-    private static final String TAG_PRINTER_SETTINGS_FRAGMENT = "PRINTER_SETTINGS_FRAGMENT";
+    public static final String TAG_PRINTER_SETTINGS_FRAGMENT = "PRINTER_SETTINGS_FRAGMENT";
     private static final String TAG_PRINTER_DISPLAY_FRAG = "PRINTER_DISPLAY_FRAG";
     // References to Nav Menu Fragments
     GoogleMapsFragment mGoogleMapsFragment;
@@ -105,7 +99,9 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         //Get Google User Account
         Bundle args = getIntent().getExtras();
-        mGoogleSignInAccount = args.getParcelable(KEY_USER_ACCOUNT);
+        if (args != null) {
+            mGoogleSignInAccount = args.getParcelable(KEY_USER_ACCOUNT);
+        }
 
         setToolbar();
         setDrawerLayout();
@@ -193,11 +189,11 @@ public class MainActivity extends AppCompatActivity
         nvDrawerHeaderEmail = nvDrawerHeader.findViewById(R.id.textView_user_email);
 
         //Set header fields
-        if (mGoogleSignInAccount.getPhotoUrl() != null) {
+        if (mGoogleSignInAccount != null) {
             Picasso.get().load(mGoogleSignInAccount.getPhotoUrl()).into(nvDrawerHeaderImage);
+            nvDrawerHeaderName.setText(mGoogleSignInAccount.getDisplayName());
+            nvDrawerHeaderEmail.setText(mGoogleSignInAccount.getEmail());
         }
-        nvDrawerHeaderName.setText(mGoogleSignInAccount.getDisplayName());
-        nvDrawerHeaderEmail.setText(mGoogleSignInAccount.getEmail());
     }
 
     private void setToolbar() {
@@ -343,12 +339,9 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onPrinterOwnerFragmentInteraction(Printer printer) {
-        if(fm.findFragmentByTag(TAG_PRINTER_OWNER_FRAGMENT).isVisible()) {
-            fm.beginTransaction()
-                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                    .add(R.id.flContent, new PrinterSettingsFragment(), TAG_PRINTER_SETTINGS_FRAGMENT)
-                    .addToBackStack(null)
-                    .commit();
+        PrinterOwnerFragment frag = (PrinterOwnerFragment) fm.findFragmentByTag(TAG_PRINTER_OWNER_FRAGMENT);
+        if (frag != null) {
+            frag.showPrinterSelected(printer);
         }
     }
 

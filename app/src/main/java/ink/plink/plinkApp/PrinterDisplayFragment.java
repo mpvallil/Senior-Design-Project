@@ -22,6 +22,10 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.braintreepayments.api.dropin.DropInActivity;
+import com.braintreepayments.api.dropin.DropInRequest;
+import com.braintreepayments.api.dropin.DropInResult;
+
 
 /**
  * A simple {@link Fragment} subclass.
@@ -32,6 +36,7 @@ public class PrinterDisplayFragment extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PRINTER = "param1";
+    private static final int REQUEST_CODE_BRAINTREE = 99;
 
     //Callback For MainActivity
     private OnPrinterDisplayInteractionListener mListener;
@@ -40,7 +45,7 @@ public class PrinterDisplayFragment extends Fragment {
     private static final int READ_REQUEST_CODE = 45;
 
     //Printer Used
-    private Printer printer;
+    private Printer mPrinter;
 
     //Buttons in the Display
     private Button printButton;
@@ -71,7 +76,7 @@ public class PrinterDisplayFragment extends Fragment {
     }
 
     public void setPrinter(Printer printer) {
-        this.printer = printer;
+        this.mPrinter = printer;
     }
 
     @Override
@@ -101,7 +106,7 @@ public class PrinterDisplayFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = null;
-        if (printer != null) {
+        if (mPrinter != null) {
             v = inflater.inflate(R.layout.fragment_printer_display, container, false);
             //Set the toolbar
             setToolbar(v);
@@ -120,9 +125,9 @@ public class PrinterDisplayFragment extends Fragment {
         documentNameText = v.findViewById(R.id.textView_document_name);
         printButton = v.findViewById(R.id.button_print);
 
-        printerNameText.setText(printer.getName());
-        printerTypeText.setText(printer.getPrinterType());
-        if (printer.getStatus()) {
+        printerNameText.setText(mPrinter.getName());
+        printerTypeText.setText(mPrinter.getPrinterType());
+        if (mPrinter.getStatus()) {
             printerStatusText.setText(R.string.switch_active_printer_text);
         } else {
             printerStatusText.setText(R.string.switch_offline_printer_text);
@@ -131,26 +136,26 @@ public class PrinterDisplayFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 if (!documentNameText.getText().equals(getString(R.string.text_no_document))) {
-                    mListener.onPrinterDisplayInteraction(contentUri, printer.getPrinterId());
-                    AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
-                    alert.setMessage("You printed: "+documentNameText.getText()+ " to "+printer.getName())
-                            .setTitle("Print Success!");
-                    alert.setPositiveButton("Done", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            switch(which) {
-                                case (DialogInterface.BUTTON_POSITIVE): {
-                                    break;
-                                }
-                            }
-                        }
-                    });
-                    alert.create().show();
-                    documentNameText.setText(getString(R.string.text_no_document));
-                    enablePrintButton(false);
-                    getActivity().getSupportFragmentManager().popBackStack();
-                    contentUri = null;
-                    
+//                    mListener.onPrinterDisplayInteraction(contentUri, mPrinter.getPrinterId());
+//                    AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
+//                    alert.setMessage("You printed: "+documentNameText.getText()+ " to "+mPrinter.getName())
+//                            .setTitle("Print Success!");
+//                    alert.setPositiveButton("Done", new DialogInterface.OnClickListener() {
+//                        @Override
+//                        public void onClick(DialogInterface dialog, int which) {
+//                            switch(which) {
+//                                case (DialogInterface.BUTTON_POSITIVE): {
+//                                    break;
+//                                }
+//                            }
+//                        }
+//                    });
+//                    alert.create().show();
+//                    documentNameText.setText(getString(R.string.text_no_document));
+//                    enablePrintButton(false);
+//                    getActivity().getSupportFragmentManager().popBackStack();
+//                    contentUri = null;
+                    onBraintreeSubmit(v);
                 }
             }
         });
@@ -203,14 +208,26 @@ public class PrinterDisplayFragment extends Fragment {
         startActivityForResult(intent, READ_REQUEST_CODE);
     }
 
+    public void onBraintreeSubmit(View v) {
+        DropInRequest dropInRequest = new DropInRequest()
+                .clientToken(getString(R.string.Braintree_test_client_token));
+        startActivityForResult(dropInRequest.getIntent(getContext()), REQUEST_CODE_BRAINTREE);
+    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode,
                                  Intent resultData) {
-
-        // The ACTION_OPEN_DOCUMENT intent was sent with the request code
-        // READ_REQUEST_CODE. If the request code seen here doesn't match, it's the
-        // response to some other intent, and the code below shouldn't run at all.
-
+//        if (requestCode == REQUEST_CODE_BRAINTREE) {
+//            if (resultCode == Activity.RESULT_OK) {
+//                DropInResult result = resultData.getParcelableExtra(DropInResult.EXTRA_DROP_IN_RESULT);
+//                // use the result to update your UI and send the payment method nonce to your server
+//            } else if (resultCode == Activity.RESULT_CANCELED) {
+//                // the user canceled
+//            } else {
+//                // handle errors here, an exception may be available in
+//                Exception error = (Exception) resultData.getSerializableExtra(DropInActivity.EXTRA_ERROR);
+//            }
+//        }
         if (requestCode == READ_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             // The document selected by the user won't be returned in the intent.
             // Instead, a URI to that document will be contained in the return intent

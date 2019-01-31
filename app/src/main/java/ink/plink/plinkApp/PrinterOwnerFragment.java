@@ -3,6 +3,8 @@ package ink.plink.plinkApp;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -19,9 +21,6 @@ import android.widget.ProgressBar;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import ink.plink.plinkApp.dummy.DummyContent;
-import ink.plink.plinkApp.dummy.DummyContent.DummyItem;
 
 /**
  * A fragment representing a recyclerView of Items.
@@ -109,7 +108,7 @@ public class PrinterOwnerFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
-        inflater.inflate(R.menu.toolbar_menu_printer_display, menu);
+        inflater.inflate(R.menu.toolbar_menu_printer_owner, menu);
     }
 
     @Override
@@ -138,6 +137,9 @@ public class PrinterOwnerFragment extends Fragment {
                 recyclerView.setAdapter(null);
                 getPrintersByOwnerList();
             }
+            case R.id.action_add_printer: {
+                
+            }
         }
         return false;
     }
@@ -152,6 +154,17 @@ public class PrinterOwnerFragment extends Fragment {
         ownerPrinterList.add(new Printer().setName("Test Printer List 2").setStatus(false));
         progressBar.setVisibility(View.GONE);
         recyclerView.setAdapter(new MyPrinterOwnerRecyclerViewAdapter(ownerPrinterList, mListener));
+    }
+
+    public void showPrinterSelected(Printer printer) {
+        FragmentManager fm = getFragmentManager();
+        PrinterSettingsFragment frag = new PrinterSettingsFragment();
+        frag.setPrinter(printer);
+        fm.beginTransaction()
+                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                .replace(R.id.frameLayout_printer_settings, frag, MainActivity.TAG_PRINTER_SETTINGS_FRAGMENT)
+                .addToBackStack(null)
+                .commit();
     }
 
     /**

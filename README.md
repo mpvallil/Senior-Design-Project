@@ -1,3 +1,5 @@
-# ECE484Project15client
+## Plink Android App
 
-This is the repository for the Plink project Android application
+This is the Plink project Android application
+
+
